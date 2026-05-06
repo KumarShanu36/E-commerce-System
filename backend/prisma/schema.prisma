@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(CUSTOMER)
+  orders    Order[]
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id            String      @id @default(uuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  totalAmount   Decimal
+  status        OrderStatus @default(PENDING)
+  paymentStatus String      @default("PENDING")
+  items         OrderItem[]
+  createdAt     DateTime    @default(now())
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  productId String   // Refers to MongoDB Product ID
+  quantity  Int
+  price     Decimal
+}
+
+model Inventory {
+  sku         String   @id
+  productId   String   // Refers to MongoDB Product ID
+  quantity    Int      @default(0)
+  warehouseId String?
+  updatedAt   DateTime @updatedAt
+}
