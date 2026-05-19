@@ -65,6 +65,18 @@ app.get("/", (req, res) => {
                 justify-content: center;
                 position: relative;
             }
+            .global-loader {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 3px;
+                width: 0%;
+                background: linear-gradient(90deg, var(--accent) 0%, var(--indigo) 100%);
+                box-shadow: 0 0 12px var(--accent), 0 0 6px var(--indigo);
+                z-index: 99999;
+                opacity: 0;
+                transition: width 0.1s ease, opacity 0.3s ease;
+            }
             .bg-glow-1 {
                 position: absolute;
                 width: 800px;
@@ -384,6 +396,23 @@ app.get("/", (req, res) => {
             .action-card:hover .action-card-arrow {
                 transform: translateX(4px);
             }
+            .card-loader-bar {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 3px;
+                background: rgba(255, 255, 255, 0.05);
+                z-index: 10;
+                overflow: hidden;
+                display: none;
+            }
+            .card-loader-fill {
+                height: 100%;
+                width: 0%;
+                background: linear-gradient(90deg, var(--accent), var(--indigo));
+                transition: width 0.1s ease;
+            }
             .gateway-list {
                 display: flex;
                 flex-direction: column;
@@ -587,6 +616,7 @@ app.get("/", (req, res) => {
         </style>
     </head>
     <body>
+        <div id="global-loader" class="global-loader"></div>
         <div class="bg-glow-1"></div>
         <div class="bg-glow-2"></div>
         <div class="container">
@@ -643,7 +673,7 @@ app.get("/", (req, res) => {
                 </div>
                 
                 <div class="recruiter-links">
-                    <a href="https://freshcart-store.onrender.com" target="_blank" class="action-card">
+                    <a href="https://freshcart-store.onrender.com" onclick="launchApp('https://freshcart-store.onrender.com', 'store', event)" class="action-card">
                         <span class="action-card-header">
                             <span>Storefront App</span>
                             <span class="status-indicator" id="store-status">
@@ -651,8 +681,9 @@ app.get("/", (req, res) => {
                             </span>
                         </span>
                         <span class="action-card-title">Launch Client <span class="action-card-arrow">→</span></span>
+                        <div class="card-loader-bar"><div class="card-loader-fill" id="store-loader-fill"></div></div>
                     </a>
-                    <a href="https://freshcart-admin.onrender.com" target="_blank" class="action-card">
+                    <a href="https://freshcart-admin.onrender.com" onclick="launchApp('https://freshcart-admin.onrender.com', 'admin', event)" class="action-card">
                         <span class="action-card-header">
                             <span>Admin Console</span>
                             <span class="status-indicator" id="admin-status">
@@ -660,6 +691,7 @@ app.get("/", (req, res) => {
                             </span>
                         </span>
                         <span class="action-card-title">Launch Portal <span class="action-card-arrow">→</span></span>
+                        <div class="card-loader-bar"><div class="card-loader-fill" id="admin-loader-fill"></div></div>
                     </a>
                 </div>
 
@@ -743,6 +775,47 @@ app.get("/", (req, res) => {
             function selectRoute(path) {
                 document.getElementById('api-path-input').value = path;
                 triggerCustomFetch();
+            }
+
+            function launchApp(url, appName, event) {
+                event.preventDefault();
+                const loader = document.getElementById('global-loader');
+                const cardLoaderBar = document.getElementById(appName + '-loader-fill').parentElement;
+                const cardLoaderFill = document.getElementById(appName + '-loader-fill');
+                
+                loader.style.opacity = '1';
+                loader.style.width = '0%';
+                cardLoaderBar.style.display = 'block';
+                cardLoaderFill.style.width = '0%';
+                
+                const statusIndicator = document.getElementById(appName + '-status');
+                const originalText = statusIndicator.innerHTML;
+                statusIndicator.innerHTML = '<span class="indicator-dot dot-amber"></span> Launching...';
+                statusIndicator.style.color = '#fbbf24';
+                
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.floor(Math.random() * 15) + 8;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                        
+                        window.open(url, '_blank');
+                        
+                        setTimeout(() => {
+                            loader.style.opacity = '0';
+                            cardLoaderBar.style.display = 'none';
+                            cardLoaderFill.style.width = '0%';
+                            setTimeout(() => {
+                                loader.style.width = '0%';
+                                statusIndicator.innerHTML = originalText;
+                                checkServiceStatus(url, appName + '-status');
+                            }, 300);
+                        }, 450);
+                    }
+                    loader.style.width = progress + '%';
+                    cardLoaderFill.style.width = progress + '%';
+                }, 70);
             }
 
             async function triggerCustomFetch() {
