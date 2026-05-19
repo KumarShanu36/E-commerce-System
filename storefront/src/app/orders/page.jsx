@@ -10,6 +10,7 @@ import {
   Truck,
   ExternalLink,
 } from "lucide-react";
+import { API_URL } from "@/config";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
@@ -21,7 +22,7 @@ export default function OrdersPage() {
     const fetchOrders = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/v1/orders/user/${mockUserId}`,
+          `${API_URL}/api/v1/orders/user/${mockUserId}`,
         );
         if (res.ok) {
           const data = await res.json();

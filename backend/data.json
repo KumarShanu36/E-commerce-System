@@ -1,6 +1,6 @@
 {
   "isMaintenanceMode": false,
-  "isHighDemandMode": true,
+  "isHighDemandMode": false,
   "serviceableLocations": [
     "110001",
     "10001",

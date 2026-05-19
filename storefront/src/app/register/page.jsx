@@ -13,6 +13,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
+import { API_URL } from "@/config";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -39,7 +40,7 @@ export default function RegisterPage() {
     try {
       // Typically you'd call your backend here
       const res = await fetch(
-        "http://localhost:5000/api/v1/auth/register/send-otp",
+        `${API_URL}/api/v1/auth/register/send-otp`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -63,7 +64,7 @@ export default function RegisterPage() {
     setError("");
     try {
       const res = await fetch(
-        "http://localhost:5000/api/v1/auth/register/verify",
+        `${API_URL}/api/v1/auth/register/verify`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
