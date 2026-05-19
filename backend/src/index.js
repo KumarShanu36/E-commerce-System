@@ -26,13 +26,30 @@ app.get("/", (req, res) => {
         <style>
             :root {
                 --bg-color: #050507;
-                --card-bg: rgba(15, 15, 20, 0.6);
+                --card-bg: rgba(10, 10, 12, 0.4);
                 --border-color: rgba(255, 255, 255, 0.05);
                 --text-primary: #f4f4f5;
                 --text-secondary: #a1a1aa;
                 --accent: #10b981;
                 --accent-glow: rgba(16, 185, 129, 0.15);
                 --indigo: #6366f1;
+            }
+            * {
+                box-sizing: border-box;
+            }
+            ::-webkit-scrollbar {
+                width: 6px;
+                height: 6px;
+            }
+            ::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            ::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.08);
+                border-radius: 99px;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background: var(--accent);
             }
             body {
                 background-color: var(--bg-color);
@@ -55,6 +72,7 @@ app.get("/", (req, res) => {
                 top: -20%;
                 right: -10%;
                 z-index: 0;
+                pointer-events: none;
             }
             .bg-glow-2 {
                 position: absolute;
@@ -64,6 +82,7 @@ app.get("/", (req, res) => {
                 bottom: -20%;
                 left: -10%;
                 z-index: 0;
+                pointer-events: none;
             }
             .container {
                 max-width: 1100px;
@@ -135,6 +154,10 @@ app.get("/", (req, res) => {
                 background: linear-gradient(135deg, var(--accent) 0%, var(--indigo) 100%);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
+                transition: text-shadow 0.3s, filter 0.3s;
+            }
+            h1 span:hover {
+                filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.5));
             }
             .hero-desc {
                 color: var(--text-secondary);
@@ -148,11 +171,37 @@ app.get("/", (req, res) => {
                 gap: 1rem;
                 margin-bottom: 2.5rem;
             }
+            .arch-card, .action-card, .gateway-item, .profile-card, .console-section {
+                position: relative;
+                overflow: hidden;
+            }
+            .arch-card > *, .action-card > *, .gateway-item > *, .profile-card > *, .console-section > * {
+                position: relative;
+                z-index: 2;
+            }
+            .arch-card::before, .action-card::before, .gateway-item::before, .profile-card::before, .console-section::before {
+                content: '';
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: radial-gradient(300px circle at var(--x, 0px) var(--y, 0px), rgba(99, 102, 241, 0.06), transparent 80%);
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                pointer-events: none;
+                z-index: 1;
+            }
+            .arch-card:hover::before, .action-card:hover::before, .gateway-item:hover::before, .profile-card:hover::before, .console-section:hover::before {
+                opacity: 1;
+            }
             .arch-card {
                 background: rgba(255, 255, 255, 0.01);
                 border: 1px solid var(--border-color);
                 border-radius: 16px;
                 padding: 1rem;
+                transition: border-color 0.3s, transform 0.3s;
+            }
+            .arch-card:hover {
+                border-color: rgba(255,255,255,0.1);
+                transform: translateY(-2px);
             }
             .arch-title {
                 font-size: 0.75rem;
@@ -176,6 +225,11 @@ app.get("/", (req, res) => {
                 align-items: center;
                 gap: 1.25rem;
                 margin-top: auto;
+                transition: border-color 0.3s, transform 0.3s;
+            }
+            .profile-card:hover {
+                border-color: rgba(99,102,241,0.2);
+                transform: translateY(-2px);
             }
             .profile-avatar {
                 width: 48px;
@@ -253,21 +307,20 @@ app.get("/", (req, res) => {
             .action-card {
                 background: rgba(255, 255, 255, 0.02);
                 border: 1px solid var(--border-color);
-                border-radius: 16px;
+                border-radius: 20px;
                 padding: 1.25rem;
                 text-decoration: none;
                 color: inherit;
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
-                min-height: 100px;
-                transition: all 0.25s;
-                position: relative;
+                min-height: 105px;
+                transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
             }
             .action-card:hover {
-                border-color: rgba(99, 102, 241, 0.4);
-                background: rgba(99, 102, 241, 0.02);
-                transform: translateY(-2px);
+                border-color: rgba(99, 102, 241, 0.3);
+                transform: translateY(-3px);
+                box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.15);
             }
             .action-card-header {
                 font-size: 0.75rem;
@@ -311,6 +364,10 @@ app.get("/", (req, res) => {
             .action-card-arrow {
                 color: var(--accent);
                 font-weight: bold;
+                transition: transform 0.3s;
+            }
+            .action-card:hover .action-card-arrow {
+                transform: translateX(4px);
             }
             .gateway-list {
                 display: flex;
@@ -320,11 +377,16 @@ app.get("/", (req, res) => {
             .gateway-item {
                 background: rgba(0, 0, 0, 0.2);
                 border: 1px solid var(--border-color);
-                border-radius: 14px;
+                border-radius: 16px;
                 padding: 0.75rem 1rem;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
+                transition: border-color 0.3s, transform 0.3s;
+            }
+            .gateway-item:hover {
+                border-color: rgba(16, 185, 129, 0.25);
+                transform: translateY(-1px);
             }
             .gateway-path-box {
                 display: flex;
@@ -368,10 +430,15 @@ app.get("/", (req, res) => {
                 align-items: center;
                 background: rgba(0, 0, 0, 0.4);
                 border: 1px solid var(--border-color);
-                border-radius: 14px;
+                border-radius: 16px;
                 padding: 0.5rem 0.75rem;
                 gap: 0.75rem;
                 margin-bottom: 1.5rem;
+                transition: border-color 0.3s, box-shadow 0.3s;
+            }
+            .api-custom-input:focus-within {
+                border-color: rgba(16, 185, 129, 0.35);
+                box-shadow: 0 0 14px rgba(16, 185, 129, 0.15);
             }
             .api-custom-input .method-label {
                 font-family: 'JetBrains Mono', monospace;
@@ -410,9 +477,13 @@ app.get("/", (req, res) => {
             .console-section {
                 background: #020203;
                 border: 1px solid var(--border-color);
-                border-radius: 18px;
+                border-radius: 20px;
                 padding: 1.25rem;
                 box-shadow: inset 0 4px 16px rgba(0, 0, 0, 0.6);
+                transition: border-color 0.3s;
+            }
+            .console-section:hover {
+                border-color: rgba(255, 255, 255, 0.08);
             }
             .console-header {
                 display: flex;
@@ -426,6 +497,25 @@ app.get("/", (req, res) => {
                 color: var(--text-secondary);
                 gap: 1rem;
             }
+            .console-title-area {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            }
+            .console-controls {
+                display: flex;
+                gap: 5px;
+            }
+            .control-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                display: inline-block;
+            }
+            .dot-red { background-color: #ef4444; }
+            .dot-yellow { background-color: #f59e0b; }
+            .dot-green { background-color: #10b981; }
+
             .console-status-box {
                 display: flex;
                 align-items: center;
@@ -434,6 +524,13 @@ app.get("/", (req, res) => {
             .console-status {
                 font-family: 'JetBrains Mono', monospace;
                 color: var(--accent);
+            }
+            .loading-pulse {
+                animation: pulse-op 1s infinite alternate;
+            }
+            @keyframes pulse-op {
+                0% { opacity: 0.4; }
+                100% { opacity: 1; }
             }
             .copy-btn {
                 background: transparent;
@@ -583,7 +680,14 @@ app.get("/", (req, res) => {
 
                 <div class="console-section">
                     <div class="console-header">
-                        <span>Terminal Payload Stream</span>
+                        <div class="console-title-area">
+                            <div class="console-controls">
+                                <span class="control-dot dot-red"></span>
+                                <span class="control-dot dot-yellow"></span>
+                                <span class="control-dot dot-green"></span>
+                            </div>
+                            <span style="margin-left: 0.25rem;">Terminal Payload Stream</span>
+                        </div>
                         <div class="console-status-box">
                             <button class="copy-btn" onclick="copyConsolePayload()">Copy Response</button>
                             <span class="console-status" id="console-status">Ready</span>
@@ -599,6 +703,23 @@ app.get("/", (req, res) => {
         <script>
             let currentPayload = null;
 
+            // Follow-mouse glowing effect initialization
+            function initGlowEffect() {
+                const elements = document.querySelectorAll('.action-card, .arch-card, .gateway-item, .profile-card, .console-section');
+                elements.forEach(el => {
+                    el.addEventListener('mousemove', e => {
+                        const rect = el.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+                        el.style.setProperty('--x', x + 'px');
+                        el.style.setProperty('--y', y + 'px');
+                    });
+                });
+            }
+            document.addEventListener('DOMContentLoaded', initGlowEffect);
+            // Backup initiation for already loaded page state
+            setTimeout(initGlowEffect, 500);
+
             function selectRoute(path) {
                 document.getElementById('api-path-input').value = path;
                 triggerCustomFetch();
@@ -610,7 +731,7 @@ app.get("/", (req, res) => {
                 const consoleStatus = document.getElementById('console-status');
                 
                 consoleBody.innerHTML = '// Requesting live pipeline telemetry from ' + path + '...';
-                consoleStatus.innerHTML = 'Connecting...';
+                consoleStatus.innerHTML = '<span class="loading-pulse">Connecting...</span>';
                 consoleStatus.style.color = '#6366f1';
                 currentPayload = null;
                 
