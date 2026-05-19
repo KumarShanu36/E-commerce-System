@@ -416,14 +416,14 @@ app.get("/", (req, res) => {
                 </div>
 
                 <div class="profile-card">
-                    <div class="profile-avatar">SK</div>
+                    <div class="profile-avatar">KS</div>
                     <div class="profile-details">
-                        <h3>Shanu Kumar</h3>
+                        <h3>Kumar Shanu</h3>
                         <p>Full Stack Engineer & System Architect</p>
                         <div class="profile-links">
-                            <a href="mailto:kumarshanu.dev@gmail.com" class="profile-link">Email</a>
+                            <a href="mailto:kumarshanu90848@gmail.com" class="profile-link">Email</a>
                             <a href="https://github.com/KumarShanu36" target="_blank" class="profile-link">GitHub</a>
-                            <a href="https://linkedin.com" target="_blank" class="profile-link">LinkedIn</a>
+                            <a href="https://www.linkedin.com/in/kumar-shanu36/" target="_blank" class="profile-link">LinkedIn</a>
                         </div>
                     </div>
                 </div>
