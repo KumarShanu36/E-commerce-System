@@ -21,186 +21,211 @@ app.get("/", (req, res) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>FreshCart Core Engine</title>
+        <title>FreshCart Engine | Portfolio & API Gateways</title>
         <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
         <style>
             :root {
-                --bg-color: #030303;
-                --card-bg: rgba(10, 10, 10, 0.7);
-                --border-color: rgba(255, 255, 255, 0.08);
+                --bg-color: #050507;
+                --card-bg: rgba(15, 15, 20, 0.6);
+                --border-color: rgba(255, 255, 255, 0.05);
                 --text-primary: #f4f4f5;
                 --text-secondary: #a1a1aa;
                 --accent: #10b981;
                 --accent-glow: rgba(16, 185, 129, 0.15);
+                --indigo: #6366f1;
             }
             body {
                 background-color: var(--bg-color);
                 color: var(--text-primary);
                 font-family: 'Plus Jakarta Sans', sans-serif;
                 margin: 0;
+                padding: 0;
+                min-height: 100vh;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                min-height: 100vh;
                 overflow-x: hidden;
                 position: relative;
             }
             .bg-glow-1 {
                 position: absolute;
-                width: 600px;
-                height: 600px;
-                background: radial-gradient(circle, rgba(16, 185, 129, 0.05) 0%, transparent 70%);
-                top: -10%;
+                width: 800px;
+                height: 800px;
+                background: radial-gradient(circle, rgba(16, 185, 129, 0.03) 0%, transparent 70%);
+                top: -20%;
                 right: -10%;
                 z-index: 0;
             }
             .bg-glow-2 {
                 position: absolute;
-                width: 600px;
-                height: 600px;
-                background: radial-gradient(circle, rgba(99, 102, 241, 0.04) 0%, transparent 70%);
-                bottom: -10%;
+                width: 800px;
+                height: 800px;
+                background: radial-gradient(circle, rgba(99, 102, 241, 0.03) 0%, transparent 70%);
+                bottom: -20%;
                 left: -10%;
                 z-index: 0;
             }
-            .wrapper {
-                max-width: 1000px;
+            .container {
+                max-width: 1100px;
                 width: 100%;
-                padding: 2rem;
+                margin: 3rem auto;
+                padding: 0 2rem;
                 z-index: 10;
                 display: grid;
-                grid-template-columns: 1.2fr 1.8fr;
-                gap: 2.5rem;
+                grid-template-columns: 1fr 1.2fr;
+                gap: 3rem;
             }
-            @media (max-width: 768px) {
-                .wrapper {
+            @media (max-width: 900px) {
+                .container {
                     grid-template-columns: 1fr;
+                    margin: 1.5rem auto;
                 }
             }
             .panel-left {
                 display: flex;
                 flex-direction: column;
-                justify-content: center;
+                justify-content: space-between;
             }
-            .logo-section {
+            .badge-row {
                 display: flex;
                 align-items: center;
                 gap: 0.75rem;
-                margin-bottom: 2rem;
+                margin-bottom: 1.5rem;
             }
-            .logo-icon {
-                width: 40px;
-                height: 40px;
-                background: linear-gradient(135deg, var(--accent), #6366f1);
-                border-radius: 12px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: 800;
-                font-size: 1.2rem;
-                color: #000;
-            }
-            .logo-text {
-                font-size: 1.5rem;
-                font-weight: 800;
-                letter-spacing: -0.04em;
-            }
-            .logo-tag {
-                background: rgba(255, 255, 255, 0.05);
-                border: 1px solid var(--border-color);
-                padding: 0.2rem 0.5rem;
-                border-radius: 6px;
-                font-size: 0.7rem;
+            .status-badge {
+                background: rgba(16, 185, 129, 0.08);
+                border: 1px solid rgba(16, 185, 129, 0.2);
+                color: var(--accent);
+                padding: 0.35rem 0.75rem;
+                border-radius: 999px;
+                font-size: 0.75rem;
                 font-weight: 700;
-                color: var(--text-secondary);
-            }
-            h1 {
-                font-size: 3rem;
-                font-weight: 800;
-                letter-spacing: -0.05em;
-                margin: 0 0 1rem 0;
-                line-height: 1.1;
-            }
-            h1 span {
-                background: linear-gradient(120deg, var(--accent), #6366f1);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-            }
-            .desc {
-                color: var(--text-secondary);
-                font-size: 1.05rem;
-                line-height: 1.6;
-                margin-bottom: 2.5rem;
-            }
-            .tech-badges {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.75rem;
-                margin-bottom: 2.5rem;
-            }
-            .tech-badge {
-                background: rgba(255, 255, 255, 0.02);
-                border: 1px solid var(--border-color);
-                padding: 0.5rem 1rem;
-                border-radius: 10px;
-                font-size: 0.8rem;
-                font-weight: 600;
-                color: var(--text-secondary);
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
                 display: flex;
                 align-items: center;
                 gap: 0.5rem;
             }
-            .status-card {
-                background: var(--card-bg);
+            .status-dot {
+                width: 6px;
+                height: 6px;
+                background-color: var(--accent);
+                border-radius: 50%;
+                display: inline-block;
+                box-shadow: 0 0 8px var(--accent);
+                animation: pulse 2s infinite;
+            }
+            .version-badge {
+                background: rgba(255, 255, 255, 0.05);
                 border: 1px solid var(--border-color);
-                backdrop-filter: blur(20px);
+                color: var(--text-secondary);
+                padding: 0.35rem 0.75rem;
+                border-radius: 999px;
+                font-size: 0.75rem;
+                font-weight: 700;
+            }
+            h1 {
+                font-size: 3.2rem;
+                font-weight: 800;
+                letter-spacing: -0.05em;
+                line-height: 1.1;
+                margin: 0 0 1.5rem 0;
+            }
+            h1 span {
+                background: linear-gradient(135deg, var(--accent) 0%, var(--indigo) 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+            .hero-desc {
+                color: var(--text-secondary);
+                font-size: 1.05rem;
+                line-height: 1.6;
+                margin-bottom: 2rem;
+            }
+            .architecture-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+                margin-bottom: 2.5rem;
+            }
+            .arch-card {
+                background: rgba(255, 255, 255, 0.01);
+                border: 1px solid var(--border-color);
+                border-radius: 16px;
+                padding: 1rem;
+            }
+            .arch-title {
+                font-size: 0.75rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--text-secondary);
+                margin-bottom: 0.5rem;
+            }
+            .arch-value {
+                font-size: 0.95rem;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+            .profile-card {
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(99, 102, 241, 0.02) 100%);
+                border: 1px solid var(--border-color);
                 border-radius: 24px;
                 padding: 1.5rem;
                 display: flex;
                 align-items: center;
-                justify-content: space-between;
-                box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+                gap: 1.25rem;
+                margin-top: auto;
             }
-            .status-info {
+            .profile-avatar {
+                width: 48px;
+                height: 48px;
+                background: linear-gradient(135deg, var(--accent), var(--indigo));
+                border-radius: 16px;
                 display: flex;
                 align-items: center;
-                gap: 1rem;
+                justify-content: center;
+                font-weight: 800;
+                font-size: 1.25rem;
+                color: #000;
             }
-            .status-dot-pulse {
-                width: 12px;
-                height: 12px;
-                background-color: var(--accent);
-                border-radius: 50%;
-                position: relative;
-            }
-            .status-dot-pulse::after {
-                content: '';
-                position: absolute;
-                width: 100%;
-                height: 100%;
-                border-radius: 50%;
-                background-color: var(--accent);
-                animation: pulse-ring 1.5s infinite;
-            }
-            .status-label {
+            .profile-details h3 {
+                margin: 0;
+                font-size: 1.05rem;
                 font-weight: 700;
-                font-size: 1rem;
             }
-            .status-sub {
-                color: var(--text-secondary);
+            .profile-details p {
+                margin: 0.2rem 0 0.5rem 0;
                 font-size: 0.8rem;
-                margin-top: 0.2rem;
+                color: var(--text-secondary);
+            }
+            .profile-links {
+                display: flex;
+                gap: 0.75rem;
+            }
+            .profile-link {
+                font-size: 0.75rem;
+                color: var(--accent);
+                text-decoration: none;
+                font-weight: 600;
+            }
+            .profile-link:hover {
+                text-decoration: underline;
             }
             .panel-right {
                 background: var(--card-bg);
                 border: 1px solid var(--border-color);
-                backdrop-filter: blur(20px);
+                backdrop-filter: blur(24px);
                 border-radius: 32px;
                 padding: 2.5rem;
                 box-shadow: 0 30px 60px rgba(0,0,0,0.6);
                 display: flex;
                 flex-direction: column;
                 gap: 2rem;
+            }
+            .section-header {
+                border-bottom: 1px solid var(--border-color);
+                padding-bottom: 1.25rem;
             }
             .section-title {
                 font-size: 1.1rem;
@@ -210,54 +235,99 @@ app.get("/", (req, res) => {
                 color: var(--text-secondary);
                 margin: 0;
             }
-            .gateway-list {
-                display: flex;
-                flex-direction: column;
+            .section-subtitle {
+                font-size: 0.85rem;
+                color: var(--text-secondary);
+                margin: 0.35rem 0 0 0;
+            }
+            .recruiter-links {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
                 gap: 1rem;
             }
-            .gateway-item {
-                background: rgba(255, 255, 255, 0.01);
+            @media (max-width: 500px) {
+                .recruiter-links {
+                    grid-template-columns: 1fr;
+                }
+            }
+            .action-card {
+                background: rgba(255, 255, 255, 0.02);
                 border: 1px solid var(--border-color);
                 border-radius: 16px;
-                padding: 1rem 1.25rem;
+                padding: 1.25rem;
+                text-decoration: none;
+                color: inherit;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                min-height: 80px;
+                transition: all 0.25s;
+            }
+            .action-card:hover {
+                border-color: rgba(99, 102, 241, 0.4);
+                background: rgba(99, 102, 241, 0.02);
+                transform: translateY(-2px);
+            }
+            .action-card-header {
+                font-size: 0.75rem;
+                font-weight: 700;
+                color: var(--text-secondary);
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+            .action-card-title {
+                font-size: 1.1rem;
+                font-weight: 700;
+                margin-top: 0.5rem;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                transition: all 0.3s;
             }
-            .gateway-item:hover {
-                border-color: rgba(16, 185, 129, 0.3);
-                background: rgba(16, 185, 129, 0.01);
+            .action-card-arrow {
+                color: var(--accent);
+                font-weight: bold;
             }
-            .gateway-info {
+            .gateway-list {
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            .gateway-item {
+                background: rgba(0, 0, 0, 0.2);
+                border: 1px solid var(--border-color);
+                border-radius: 14px;
+                padding: 0.75rem 1rem;
                 display: flex;
                 align-items: center;
-                gap: 1rem;
+                justify-content: space-between;
+            }
+            .gateway-path-box {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
             }
             .method-badge {
-                font-size: 0.75rem;
-                font-weight: 800;
-                padding: 0.25rem 0.6rem;
-                border-radius: 6px;
                 font-family: 'JetBrains Mono', monospace;
-            }
-            .method-get {
-                background: rgba(16, 185, 129, 0.1);
-                color: #34d399;
+                font-size: 0.7rem;
+                font-weight: 800;
+                padding: 0.2rem 0.5rem;
+                border-radius: 4px;
                 border: 1px solid rgba(16, 185, 129, 0.2);
+                background: rgba(16, 185, 129, 0.08);
+                color: var(--accent);
             }
             .gateway-path {
                 font-family: 'JetBrains Mono', monospace;
-                font-size: 0.9rem;
+                font-size: 0.85rem;
                 color: var(--text-primary);
             }
             .test-btn {
-                background: rgba(255,255,255,0.05);
+                background: rgba(255, 255, 255, 0.04);
                 border: 1px solid var(--border-color);
                 color: var(--text-primary);
-                padding: 0.5rem 1rem;
-                border-radius: 10px;
-                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem;
+                border-radius: 8px;
+                font-size: 0.75rem;
                 font-weight: 600;
                 cursor: pointer;
                 transition: all 0.2s;
@@ -266,123 +336,152 @@ app.get("/", (req, res) => {
                 background: var(--accent);
                 color: #000;
                 border-color: var(--accent);
-                box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+                box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
             }
-            .response-section {
-                display: flex;
-                flex-direction: column;
-                gap: 0.75rem;
+            .console-section {
+                background: #020203;
+                border: 1px solid var(--border-color);
+                border-radius: 18px;
+                padding: 1.25rem;
+                box-shadow: inset 0 4px 16px rgba(0, 0, 0, 0.6);
             }
             .console-header {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-            }
-            .console-title {
-                font-size: 0.8rem;
+                margin-bottom: 0.75rem;
+                font-size: 0.75rem;
                 font-weight: 700;
                 text-transform: uppercase;
-                letter-spacing: 0.08em;
+                letter-spacing: 0.05em;
                 color: var(--text-secondary);
             }
             .console-status {
                 font-family: 'JetBrains Mono', monospace;
-                font-size: 0.8rem;
-                font-weight: bold;
                 color: var(--accent);
             }
             .console-body {
-                background: #020202;
-                border: 1px solid var(--border-color);
-                border-radius: 16px;
-                padding: 1.5rem;
                 font-family: 'JetBrains Mono', monospace;
-                font-size: 0.85rem;
+                font-size: 0.8rem;
                 color: #34d399;
-                min-height: 120px;
-                max-height: 250px;
+                max-height: 180px;
                 overflow-y: auto;
                 white-space: pre-wrap;
-                box-shadow: inset 0 4px 12px rgba(0,0,0,0.5);
             }
             .console-placeholder {
-                color: #52525b;
+                color: #4b5563;
                 font-style: italic;
             }
-            @keyframes pulse-ring {
-                0% { transform: scale(0.33); opacity: 1; }
-                80%, 100% { transform: scale(2.2); opacity: 0; }
+            @keyframes pulse {
+                0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+                70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+                100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
             }
         </style>
     </head>
     <body>
         <div class="bg-glow-1"></div>
         <div class="bg-glow-2"></div>
-        <div class="wrapper">
+        <div class="container">
             <div class="panel-left">
-                <div class="logo-section">
-                    <div class="logo-icon">F</div>
-                    <div class="logo-text">FRESHCART</div>
-                    <div class="logo-tag">CORE</div>
-                </div>
-                <h1>The Heart of <span>Freshness</span>.</h1>
-                <p class="desc">A high-performance full-stack API engine orchestrating inventories, security authorization protocols, locations, and transaction services.</p>
-                
-                <div class="tech-badges">
-                    <div class="tech-badge">🟢 Node.js</div>
-                    <div class="tech-badge">⚡ Express</div>
-                    <div class="tech-badge">🔷 Prisma ORM</div>
-                    <div class="tech-badge">🍃 MongoDB</div>
-                </div>
-
-                <div class="status-card">
-                    <div class="status-info">
-                        <div class="status-dot-pulse"></div>
-                        <div>
-                            <div class="status-label">API Status</div>
-                            <div class="status-sub">Operational & Accepting Queries</div>
+                <div>
+                    <div class="badge-row">
+                        <span class="status-badge">
+                            <span class="status-dot"></span>
+                            Live System
+                        </span>
+                        <span class="version-badge">v1.2.0-stable</span>
+                    </div>
+                    <h1>FreshCart <span>Engine</span></h1>
+                    <p class="hero-desc">An enterprise-grade, high-concurrency micro-monolithic backend engine powering a modular e-commerce ecosystem. Built with optimal routing, strict database schema guarantees, and latency mitigation strategies.</p>
+                    
+                    <div class="architecture-grid">
+                        <div class="arch-card">
+                            <div class="arch-title">Core Runtime</div>
+                            <div class="arch-value">Node.js (Express)</div>
+                        </div>
+                        <div class="arch-card">
+                            <div class="arch-title">Data Storage</div>
+                            <div class="arch-value">MongoDB Cluster</div>
+                        </div>
+                        <div class="arch-card">
+                            <div class="arch-title">ORM Layer</div>
+                            <div class="arch-value">Prisma (Schema-Safe)</div>
+                        </div>
+                        <div class="arch-card">
+                            <div class="arch-title">Deployment</div>
+                            <div class="arch-value">Render Web Service</div>
                         </div>
                     </div>
-                    <div style="font-size: 0.8rem; font-weight: bold; opacity: 0.6; font-family: monospace;">v1.0.0</div>
+                </div>
+
+                <div class="profile-card">
+                    <div class="profile-avatar">SK</div>
+                    <div class="profile-details">
+                        <h3>Shanu Kumar</h3>
+                        <p>Full Stack Engineer & System Architect</p>
+                        <div class="profile-links">
+                            <a href="mailto:kumarshanu.dev@gmail.com" class="profile-link">Email</a>
+                            <a href="https://github.com/KumarShanu36" target="_blank" class="profile-link">GitHub</a>
+                            <a href="https://linkedin.com" target="_blank" class="profile-link">LinkedIn</a>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="panel-right">
-                <div>
-                    <h2 class="section-title">Interactive API Gateways</h2>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.5rem; margin-bottom: 1.5rem;">Click 'Test Gateway' to execute live request and inspect database payloads.</p>
-                    <div class="gateway-list">
-                        <div class="gateway-item">
-                            <div class="gateway-info">
-                                <span class="method-badge method-get">GET</span>
-                                <span class="gateway-path">/api/v1/health</span>
-                            </div>
-                            <button class="test-btn" onclick="testEndpoint('/api/v1/health')">Test Gateway</button>
+                <div class="section-header">
+                    <h2 class="section-title">Ecosystem Navigation</h2>
+                    <p class="section-subtitle">Access user-facing and admin interfaces deployed live.</p>
+                </div>
+                
+                <div class="recruiter-links">
+                    <a href="https://freshcart-store.onrender.com" target="_blank" class="action-card">
+                        <span class="action-card-header">Storefront App</span>
+                        <span class="action-card-title">Launch Client <span class="action-card-arrow">→</span></span>
+                    </a>
+                    <a href="https://freshcart-admin.onrender.com" target="_blank" class="action-card">
+                        <span class="action-card-header">Admin Console</span>
+                        <span class="action-card-title">Launch Portal <span class="action-card-arrow">→</span></span>
+                    </a>
+                </div>
+
+                <div class="section-header">
+                    <h2 class="section-title">Live Sandbox Gateways</h2>
+                    <p class="section-subtitle">Execute and inspect live server responses and latency metrics.</p>
+                </div>
+
+                <div class="gateway-list">
+                    <div class="gateway-item">
+                        <div class="gateway-path-box">
+                            <span class="method-badge">GET</span>
+                            <span class="gateway-path">/api/v1/health</span>
                         </div>
-                        <div class="gateway-item">
-                            <div class="gateway-info">
-                                <span class="method-badge method-get">GET</span>
-                                <span class="gateway-path">/api/v1/settings</span>
-                            </div>
-                            <button class="test-btn" onclick="testEndpoint('/api/v1/settings')">Test Gateway</button>
+                        <button class="test-btn" onclick="testEndpoint('/api/v1/health')">Test Route</button>
+                    </div>
+                    <div class="gateway-item">
+                        <div class="gateway-path-box">
+                            <span class="method-badge">GET</span>
+                            <span class="gateway-path">/api/v1/settings</span>
                         </div>
-                        <div class="gateway-item">
-                            <div class="gateway-info">
-                                <span class="method-badge method-get">GET</span>
-                                <span class="gateway-path">/api/v1/products</span>
-                            </div>
-                            <button class="test-btn" onclick="testEndpoint('/api/v1/products')">Test Gateway</button>
+                        <button class="test-btn" onclick="testEndpoint('/api/v1/settings')">Test Route</button>
+                    </div>
+                    <div class="gateway-item">
+                        <div class="gateway-path-box">
+                            <span class="method-badge">GET</span>
+                            <span class="gateway-path">/api/v1/products</span>
                         </div>
+                        <button class="test-btn" onclick="testEndpoint('/api/v1/products')">Test Route</button>
                     </div>
                 </div>
 
-                <div class="response-section">
+                <div class="console-section">
                     <div class="console-header">
-                        <span class="console-title">Live Payload Console</span>
-                        <span class="console-status" id="console-status">READY</span>
+                        <span>Terminal Payload Stream</span>
+                        <span class="console-status" id="console-status">Ready</span>
                     </div>
                     <div class="console-body" id="console-body">
-                        <span class="console-placeholder">// Dynamic JSON responses will output here...</span>
+                        <span class="console-placeholder">// Console initialized. Select a gateway path to trigger API fetch...</span>
                     </div>
                 </div>
             </div>
@@ -393,8 +492,8 @@ app.get("/", (req, res) => {
                 const consoleBody = document.getElementById('console-body');
                 const consoleStatus = document.getElementById('console-status');
                 
-                consoleBody.innerHTML = '// Requesting payload from ' + path + '...';
-                consoleStatus.innerHTML = 'PENDING';
+                consoleBody.innerHTML = '// Requesting live pipeline telemetry from ' + path + '...';
+                consoleStatus.innerHTML = 'Connecting...';
                 consoleStatus.style.color = '#6366f1';
                 
                 try {
@@ -408,13 +507,13 @@ app.get("/", (req, res) => {
                         consoleStatus.innerHTML = '200 OK (' + duration + 'ms)';
                         consoleStatus.style.color = '#34d399';
                     } else {
-                        consoleBody.innerHTML = '// Error: ' + res.status + ' ' + res.statusText;
-                        consoleStatus.innerHTML = res.status + ' ERROR';
+                        consoleBody.innerHTML = '// Response Error: ' + res.status + ' ' + res.statusText;
+                        consoleStatus.innerHTML = res.status + ' Error';
                         consoleStatus.style.color = '#f43f5e';
                     }
                 } catch (err) {
-                    consoleBody.innerHTML = '// Client-side Fetch Error:\\n' + err.message;
-                    consoleStatus.innerHTML = 'CONNECTION REFUSED';
+                    consoleBody.innerHTML = '// Connection Failed:\\n' + err.message;
+                    consoleStatus.innerHTML = 'Connection Refused';
                     consoleStatus.style.color = '#f43f5e';
                 }
             }
