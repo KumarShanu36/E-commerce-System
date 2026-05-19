@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useWishlist } from "@/context/WishlistContext";
+import { API_URL } from "@/config";
 import {
   ArrowLeft,
   Star,
@@ -23,13 +24,13 @@ export default function ProductDetailClient({ id }) {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/v1/products/${id}`);
+        const res = await fetch(`${API_URL}/api/v1/products/${id}`);
         if (res.ok) {
           const data = await res.json();
           setProduct(data);
         }
         const relatedRes = await fetch(
-          `http://localhost:5000/api/v1/products/${id}/related`,
+          `${API_URL}/api/v1/products/${id}/related`,
         );
         if (relatedRes.ok) {
           const relatedData = await relatedRes.json();

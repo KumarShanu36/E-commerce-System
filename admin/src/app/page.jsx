@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { API_URL } from "@/config";
 
 const SalesChart = () => {
   const data = [45, 52, 38, 65, 48, 72, 58]; // Mock weekly sales
@@ -67,7 +68,7 @@ export default function AdminDashboard() {
 
   const fetchQueries = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/v1/settings/queries");
+      const res = await fetch(`${API_URL}/api/v1/settings/queries`);
       if (res.ok) {
         const data = await res.json();
         setQueries(data);
@@ -79,7 +80,7 @@ export default function AdminDashboard() {
 
   const fetchSettings = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/v1/settings");
+      const res = await fetch(`${API_URL}/api/v1/settings`);
       if (res.ok) {
         const data = await res.json();
         setSettings(prev => ({ ...prev, ...data }));
@@ -99,7 +100,7 @@ export default function AdminDashboard() {
   const addLocation = async () => {
     if (!newLocation) return;
     try {
-      const res = await fetch("http://localhost:5000/api/v1/settings/location/add", {
+      const res = await fetch(`${API_URL}/api/v1/settings/location/add`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pincode: newLocation }),
@@ -116,7 +117,7 @@ export default function AdminDashboard() {
 
   const removeLocation = async (pincode) => {
     try {
-      const res = await fetch("http://localhost:5000/api/v1/settings/location/remove", {
+      const res = await fetch(`${API_URL}/api/v1/settings/location/remove`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pincode }),
@@ -132,7 +133,7 @@ export default function AdminDashboard() {
 
   const updateGlobalSettings = async (newData) => {
     try {
-      const res = await fetch("http://localhost:5000/api/v1/settings/update", {
+      const res = await fetch(`${API_URL}/api/v1/settings/update`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newData),
@@ -150,7 +151,7 @@ export default function AdminDashboard() {
     const nextMode = !isDarkMode;
     const themeStr = nextMode ? "dark" : "light";
     try {
-      const res = await fetch("http://localhost:5000/api/v1/settings/update", {
+      const res = await fetch(`${API_URL}/api/v1/settings/update`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ theme: themeStr }),
@@ -171,7 +172,7 @@ export default function AdminDashboard() {
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/v1/products");
+      const res = await fetch(`${API_URL}/api/v1/products`);
       if (res.ok) {
         const data = await res.json();
         setProducts(data);
@@ -186,7 +187,7 @@ export default function AdminDashboard() {
   const fetchUsers = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/v1/users");
+      const res = await fetch(`${API_URL}/api/v1/users`);
       if (res.ok) {
         const data = await res.json();
         setUsers(data);
@@ -201,7 +202,7 @@ export default function AdminDashboard() {
   const fetchOrders = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/v1/orders");
+      const res = await fetch(`${API_URL}/api/v1/orders`);
       if (res.ok) {
         const data = await res.json();
         setOrders(data);
@@ -304,7 +305,7 @@ export default function AdminDashboard() {
       return;
     }
     try {
-      const res = await fetch("http://localhost:5000/api/v1/products", {
+      const res = await fetch(`${API_URL}/api/v1/products`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -338,7 +339,7 @@ export default function AdminDashboard() {
   const handleAddStaff = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:5000/api/v1/users/register", {
+      const res = await fetch(`${API_URL}/api/v1/users/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...newStaff, role: "SUB_ADMIN" }),
@@ -1125,7 +1126,7 @@ export default function AdminDashboard() {
                             <button
                               onClick={async () => {
                                 try {
-                                  const res = await fetch(`http://localhost:5000/api/v1/settings/queries/resolve/${q.id}`, {
+                                  const res = await fetch(`${API_URL}/api/v1/settings/queries/resolve/${q.id}`, {
                                     method: "POST",
                                   });
                                   if (res.ok) {

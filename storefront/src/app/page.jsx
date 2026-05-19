@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useWishlist } from "@/context/WishlistContext";
+import { API_URL, ADMIN_URL } from "@/config";
 
 const CATEGORIES = [
   { name: "Fruits & Veggies", icon: "🍎" },
@@ -71,7 +72,7 @@ export default function Home() {
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/v1/settings");
+        const res = await fetch(`${API_URL}/api/v1/settings`);
         if (res.ok) {
           const data = await res.json();
           setIsMaintenanceMode(data.isMaintenanceMode);
@@ -91,7 +92,7 @@ export default function Home() {
 
     const fetchProducts = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/v1/products");
+        const res = await fetch(`${API_URL}/api/v1/products`);
         if (res.ok) {
           const data = await res.json();
           setProducts(data);
@@ -138,7 +139,7 @@ export default function Home() {
     e.preventDefault();
     try {
       if (authMode === "signup") {
-        const res = await fetch("http://localhost:5000/api/v1/users/register", {
+        const res = await fetch(`${API_URL}/api/v1/users/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password, name }),
@@ -152,7 +153,7 @@ export default function Home() {
           alert(data.error || "Signup failed");
         }
       } else {
-        const res = await fetch("http://localhost:5000/api/v1/users/login", {
+        const res = await fetch(`${API_URL}/api/v1/users/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
@@ -162,7 +163,7 @@ export default function Home() {
           const user = data.user;
           if (authMode === "admin") {
             if (user.role === "ADMIN" || user.role === "SUB_ADMIN") {
-              window.location.href = "http://localhost:3001";
+              window.location.href = ADMIN_URL;
             } else {
               alert("Access Denied: You do not have admin privileges.");
             }
@@ -194,7 +195,7 @@ export default function Home() {
   const handleHelpSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:5000/api/v1/settings/queries/create", {
+      const res = await fetch(`${API_URL}/api/v1/settings/queries/create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

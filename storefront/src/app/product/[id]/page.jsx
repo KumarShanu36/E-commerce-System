@@ -1,4 +1,5 @@
 import ProductDetailClient from "./ProductDetailClient";
+import { API_URL } from "@/config";
 
 export async function generateStaticParams() {
   const fallbackIds = [
@@ -14,7 +15,7 @@ export async function generateStaticParams() {
     "69fc8f0b69c68607be05438a",
   ];
   try {
-    const res = await fetch("http://localhost:5000/api/v1/products");
+    const res = await fetch(`${API_URL}/api/v1/products`);
     if (res.ok) {
       const products = await res.json();
       if (Array.isArray(products) && products.length > 0) {
