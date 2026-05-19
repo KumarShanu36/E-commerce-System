@@ -260,8 +260,9 @@ app.get("/", (req, res) => {
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
-                min-height: 80px;
+                min-height: 100px;
                 transition: all 0.25s;
+                position: relative;
             }
             .action-card:hover {
                 border-color: rgba(99, 102, 241, 0.4);
@@ -274,7 +275,31 @@ app.get("/", (req, res) => {
                 color: var(--text-secondary);
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
             }
+            .status-indicator {
+                font-size: 0.65rem;
+                font-weight: 700;
+                color: var(--text-secondary);
+                display: flex;
+                align-items: center;
+                gap: 0.35rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+            .indicator-dot {
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                display: inline-block;
+            }
+            .dot-gray { background-color: #71717a; }
+            .dot-green { background-color: #10b981; box-shadow: 0 0 8px #10b981; }
+            .dot-amber { background-color: #fbbf24; box-shadow: 0 0 8px #fbbf24; }
+
             .action-card-title {
                 font-size: 1.1rem;
                 font-weight: 700;
@@ -338,6 +363,50 @@ app.get("/", (req, res) => {
                 border-color: var(--accent);
                 box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
             }
+            .api-custom-input {
+                display: flex;
+                align-items: center;
+                background: rgba(0, 0, 0, 0.4);
+                border: 1px solid var(--border-color);
+                border-radius: 14px;
+                padding: 0.5rem 0.75rem;
+                gap: 0.75rem;
+                margin-bottom: 1.5rem;
+            }
+            .api-custom-input .method-label {
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.75rem;
+                font-weight: 800;
+                color: var(--accent);
+                background: rgba(16, 185, 129, 0.08);
+                padding: 0.25rem 0.5rem;
+                border-radius: 6px;
+                border: 1px solid rgba(16, 185, 129, 0.15);
+            }
+            .api-custom-input input {
+                flex: 1;
+                background: transparent;
+                border: none;
+                color: var(--text-primary);
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.85rem;
+                outline: none;
+            }
+            .api-custom-input .send-btn {
+                background: var(--accent);
+                color: #000;
+                border: none;
+                padding: 0.45rem 1rem;
+                border-radius: 8px;
+                font-size: 0.75rem;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .api-custom-input .send-btn:hover {
+                box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+                opacity: 0.9;
+            }
             .console-section {
                 background: #020203;
                 border: 1px solid var(--border-color);
@@ -355,10 +424,31 @@ app.get("/", (req, res) => {
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
                 color: var(--text-secondary);
+                gap: 1rem;
+            }
+            .console-status-box {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
             }
             .console-status {
                 font-family: 'JetBrains Mono', monospace;
                 color: var(--accent);
+            }
+            .copy-btn {
+                background: transparent;
+                border: 1px solid var(--border-color);
+                color: var(--text-secondary);
+                padding: 0.25rem 0.5rem;
+                border-radius: 6px;
+                font-size: 0.65rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .copy-btn:hover {
+                color: var(--text-primary);
+                border-color: rgba(255, 255, 255, 0.15);
             }
             .console-body {
                 font-family: 'JetBrains Mono', monospace;
@@ -437,11 +527,21 @@ app.get("/", (req, res) => {
                 
                 <div class="recruiter-links">
                     <a href="https://freshcart-store.onrender.com" target="_blank" class="action-card">
-                        <span class="action-card-header">Storefront App</span>
+                        <span class="action-card-header">
+                            <span>Storefront App</span>
+                            <span class="status-indicator" id="store-status">
+                                <span class="indicator-dot dot-gray"></span> Checking...
+                            </span>
+                        </span>
                         <span class="action-card-title">Launch Client <span class="action-card-arrow">→</span></span>
                     </a>
                     <a href="https://freshcart-admin.onrender.com" target="_blank" class="action-card">
-                        <span class="action-card-header">Admin Console</span>
+                        <span class="action-card-header">
+                            <span>Admin Console</span>
+                            <span class="status-indicator" id="admin-status">
+                                <span class="indicator-dot dot-gray"></span> Checking...
+                            </span>
+                        </span>
                         <span class="action-card-title">Launch Portal <span class="action-card-arrow">→</span></span>
                     </a>
                 </div>
@@ -451,34 +551,43 @@ app.get("/", (req, res) => {
                     <p class="section-subtitle">Execute and inspect live server responses and latency metrics.</p>
                 </div>
 
+                <div class="api-custom-input">
+                    <span class="method-label">GET</span>
+                    <input type="text" id="api-path-input" value="/api/v1/health" />
+                    <button class="send-btn" onclick="triggerCustomFetch()">Send Request</button>
+                </div>
+
                 <div class="gateway-list">
                     <div class="gateway-item">
                         <div class="gateway-path-box">
                             <span class="method-badge">GET</span>
                             <span class="gateway-path">/api/v1/health</span>
                         </div>
-                        <button class="test-btn" onclick="testEndpoint('/api/v1/health')">Test Route</button>
+                        <button class="test-btn" onclick="selectRoute('/api/v1/health')">Quick Test</button>
                     </div>
                     <div class="gateway-item">
                         <div class="gateway-path-box">
                             <span class="method-badge">GET</span>
                             <span class="gateway-path">/api/v1/settings</span>
                         </div>
-                        <button class="test-btn" onclick="testEndpoint('/api/v1/settings')">Test Route</button>
+                        <button class="test-btn" onclick="selectRoute('/api/v1/settings')">Quick Test</button>
                     </div>
                     <div class="gateway-item">
                         <div class="gateway-path-box">
                             <span class="method-badge">GET</span>
                             <span class="gateway-path">/api/v1/products</span>
                         </div>
-                        <button class="test-btn" onclick="testEndpoint('/api/v1/products')">Test Route</button>
+                        <button class="test-btn" onclick="selectRoute('/api/v1/products')">Quick Test</button>
                     </div>
                 </div>
 
                 <div class="console-section">
                     <div class="console-header">
                         <span>Terminal Payload Stream</span>
-                        <span class="console-status" id="console-status">Ready</span>
+                        <div class="console-status-box">
+                            <button class="copy-btn" onclick="copyConsolePayload()">Copy Response</button>
+                            <span class="console-status" id="console-status">Ready</span>
+                        </div>
                     </div>
                     <div class="console-body" id="console-body">
                         <span class="console-placeholder">// Console initialized. Select a gateway path to trigger API fetch...</span>
@@ -488,13 +597,22 @@ app.get("/", (req, res) => {
         </div>
 
         <script>
-            async function testEndpoint(path) {
+            let currentPayload = null;
+
+            function selectRoute(path) {
+                document.getElementById('api-path-input').value = path;
+                triggerCustomFetch();
+            }
+
+            async function triggerCustomFetch() {
+                const path = document.getElementById('api-path-input').value;
                 const consoleBody = document.getElementById('console-body');
                 const consoleStatus = document.getElementById('console-status');
                 
                 consoleBody.innerHTML = '// Requesting live pipeline telemetry from ' + path + '...';
                 consoleStatus.innerHTML = 'Connecting...';
                 consoleStatus.style.color = '#6366f1';
+                currentPayload = null;
                 
                 try {
                     const start = performance.now();
@@ -503,6 +621,7 @@ app.get("/", (req, res) => {
                     
                     if (res.ok) {
                         const data = await res.json();
+                        currentPayload = data;
                         consoleBody.innerHTML = JSON.stringify(data, null, 2);
                         consoleStatus.innerHTML = '200 OK (' + duration + 'ms)';
                         consoleStatus.style.color = '#34d399';
@@ -517,6 +636,37 @@ app.get("/", (req, res) => {
                     consoleStatus.style.color = '#f43f5e';
                 }
             }
+
+            function copyConsolePayload() {
+                if (!currentPayload) {
+                    alert('No payload to copy. Run a request first!');
+                    return;
+                }
+                navigator.clipboard.writeText(JSON.stringify(currentPayload, null, 2));
+                const copyBtn = document.querySelector('.copy-btn');
+                const originalText = copyBtn.innerText;
+                copyBtn.innerText = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.innerText = originalText;
+                }, 1500);
+            }
+
+            async function checkServiceStatus(url, elementId) {
+                const indicator = document.getElementById(elementId);
+                try {
+                    // Use standard fetch. Render will reply with html page or 200/302 response.
+                    const res = await fetch(url, { mode: 'no-cors' });
+                    indicator.innerHTML = '<span class="indicator-dot dot-green"></span> Online';
+                    indicator.style.color = '#34d399';
+                } catch (e) {
+                    indicator.innerHTML = '<span class="indicator-dot dot-amber"></span> Standby';
+                    indicator.style.color = '#fbbf24';
+                }
+            }
+
+            // Trigger status check for deployments
+            checkServiceStatus('https://freshcart-store.onrender.com', 'store-status');
+            checkServiceStatus('https://freshcart-admin.onrender.com', 'admin-status');
         </script>
     </body>
     </html>
