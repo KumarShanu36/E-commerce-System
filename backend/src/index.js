@@ -57,11 +57,12 @@ app.get("/", (req, res) => {
                 font-family: 'Plus Jakarta Sans', sans-serif;
                 margin: 0;
                 padding: 0;
-                min-height: 100vh;
+                height: 100vh;
+                max-height: 100vh;
+                overflow: hidden;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                overflow-x: hidden;
                 position: relative;
             }
             .bg-glow-1 {
@@ -85,45 +86,56 @@ app.get("/", (req, res) => {
                 pointer-events: none;
             }
             .container {
-                max-width: 1100px;
+                max-width: 1200px;
                 width: 100%;
-                margin: 3rem auto;
-                padding: 0 2rem;
+                height: 90vh;
+                max-height: 90vh;
+                margin: 0 auto;
+                padding: 0 1.5rem;
                 z-index: 10;
                 display: grid;
                 grid-template-columns: 1fr 1.2fr;
-                gap: 3rem;
+                gap: 2.5rem;
             }
             @media (max-width: 900px) {
+                body {
+                    height: auto;
+                    max-height: none;
+                    overflow: auto;
+                }
                 .container {
                     grid-template-columns: 1fr;
+                    height: auto;
+                    max-height: none;
                     margin: 1.5rem auto;
+                    gap: 1.5rem;
                 }
             }
             .panel-left {
                 display: flex;
                 flex-direction: column;
+                height: 100%;
                 justify-content: space-between;
             }
             .badge-row {
                 display: flex;
                 align-items: center;
                 gap: 0.75rem;
-                margin-bottom: 1.5rem;
+                margin-bottom: 1rem;
             }
             .status-badge {
                 background: rgba(16, 185, 129, 0.08);
                 border: 1px solid rgba(16, 185, 129, 0.2);
                 color: var(--accent);
-                padding: 0.35rem 0.75rem;
+                padding: 0.3rem 0.65rem;
                 border-radius: 999px;
-                font-size: 0.75rem;
+                font-size: 0.7rem;
                 font-weight: 700;
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
                 display: flex;
                 align-items: center;
-                gap: 0.5rem;
+                gap: 0.4rem;
             }
             .status-dot {
                 width: 6px;
@@ -138,17 +150,17 @@ app.get("/", (req, res) => {
                 background: rgba(255, 255, 255, 0.05);
                 border: 1px solid var(--border-color);
                 color: var(--text-secondary);
-                padding: 0.35rem 0.75rem;
+                padding: 0.3rem 0.65rem;
                 border-radius: 999px;
-                font-size: 0.75rem;
+                font-size: 0.7rem;
                 font-weight: 700;
             }
             h1 {
-                font-size: 3.2rem;
+                font-size: 2.8rem;
                 font-weight: 800;
                 letter-spacing: -0.05em;
                 line-height: 1.1;
-                margin: 0 0 1.5rem 0;
+                margin: 0 0 1rem 0;
             }
             h1 span {
                 background: linear-gradient(135deg, var(--accent) 0%, var(--indigo) 100%);
@@ -161,15 +173,15 @@ app.get("/", (req, res) => {
             }
             .hero-desc {
                 color: var(--text-secondary);
-                font-size: 1.05rem;
-                line-height: 1.6;
-                margin-bottom: 2rem;
+                font-size: 0.95rem;
+                line-height: 1.5;
+                margin-bottom: 1.5rem;
             }
             .architecture-grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 1rem;
-                margin-bottom: 2.5rem;
+                gap: 0.75rem;
+                margin-bottom: 1.5rem;
             }
             .arch-card, .action-card, .gateway-item, .profile-card, .console-section {
                 position: relative;
@@ -195,8 +207,8 @@ app.get("/", (req, res) => {
             .arch-card {
                 background: rgba(255, 255, 255, 0.01);
                 border: 1px solid var(--border-color);
-                border-radius: 16px;
-                padding: 1rem;
+                border-radius: 14px;
+                padding: 0.8rem 1rem;
                 transition: border-color 0.3s, transform 0.3s;
             }
             .arch-card:hover {
@@ -204,26 +216,26 @@ app.get("/", (req, res) => {
                 transform: translateY(-2px);
             }
             .arch-title {
-                font-size: 0.75rem;
+                font-size: 0.7rem;
                 font-weight: 700;
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
                 color: var(--text-secondary);
-                margin-bottom: 0.5rem;
+                margin-bottom: 0.25rem;
             }
             .arch-value {
-                font-size: 0.95rem;
+                font-size: 0.85rem;
                 font-weight: 600;
                 color: var(--text-primary);
             }
             .profile-card {
                 background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(99, 102, 241, 0.02) 100%);
                 border: 1px solid var(--border-color);
-                border-radius: 24px;
-                padding: 1.5rem;
+                border-radius: 20px;
+                padding: 1.25rem;
                 display: flex;
                 align-items: center;
-                gap: 1.25rem;
+                gap: 1rem;
                 margin-top: auto;
                 transition: border-color 0.3s, transform 0.3s;
             }
@@ -232,25 +244,25 @@ app.get("/", (req, res) => {
                 transform: translateY(-2px);
             }
             .profile-avatar {
-                width: 48px;
-                height: 48px;
+                width: 44px;
+                height: 44px;
                 background: linear-gradient(135deg, var(--accent), var(--indigo));
-                border-radius: 16px;
+                border-radius: 14px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 font-weight: 800;
-                font-size: 1.25rem;
+                font-size: 1.1rem;
                 color: #000;
             }
             .profile-details h3 {
                 margin: 0;
-                font-size: 1.05rem;
+                font-size: 0.95rem;
                 font-weight: 700;
             }
             .profile-details p {
-                margin: 0.2rem 0 0.5rem 0;
-                font-size: 0.8rem;
+                margin: 0.15rem 0 0.4rem 0;
+                font-size: 0.75rem;
                 color: var(--text-secondary);
             }
             .profile-links {
@@ -258,7 +270,7 @@ app.get("/", (req, res) => {
                 gap: 0.75rem;
             }
             .profile-link {
-                font-size: 0.75rem;
+                font-size: 0.7rem;
                 color: var(--accent);
                 text-decoration: none;
                 font-weight: 600;
@@ -270,19 +282,22 @@ app.get("/", (req, res) => {
                 background: var(--card-bg);
                 border: 1px solid var(--border-color);
                 backdrop-filter: blur(24px);
-                border-radius: 32px;
-                padding: 2.5rem;
+                border-radius: 28px;
+                padding: 2rem;
                 box-shadow: 0 30px 60px rgba(0,0,0,0.6);
                 display: flex;
                 flex-direction: column;
-                gap: 2rem;
+                height: 100%;
+                max-height: 100%;
+                gap: 1.25rem;
+                overflow: hidden;
             }
             .section-header {
                 border-bottom: 1px solid var(--border-color);
-                padding-bottom: 1.25rem;
+                padding-bottom: 0.75rem;
             }
             .section-title {
-                font-size: 1.1rem;
+                font-size: 0.95rem;
                 font-weight: 700;
                 text-transform: uppercase;
                 letter-spacing: 0.08em;
@@ -290,14 +305,14 @@ app.get("/", (req, res) => {
                 margin: 0;
             }
             .section-subtitle {
-                font-size: 0.85rem;
+                font-size: 0.8rem;
                 color: var(--text-secondary);
-                margin: 0.35rem 0 0 0;
+                margin: 0.25rem 0 0 0;
             }
             .recruiter-links {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 1rem;
+                gap: 0.75rem;
             }
             @media (max-width: 500px) {
                 .recruiter-links {
@@ -307,23 +322,23 @@ app.get("/", (req, res) => {
             .action-card {
                 background: rgba(255, 255, 255, 0.02);
                 border: 1px solid var(--border-color);
-                border-radius: 20px;
-                padding: 1.25rem;
+                border-radius: 16px;
+                padding: 1rem 1.25rem;
                 text-decoration: none;
                 color: inherit;
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
-                min-height: 105px;
+                min-height: 90px;
                 transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
             }
             .action-card:hover {
                 border-color: rgba(99, 102, 241, 0.3);
-                transform: translateY(-3px);
-                box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.15);
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px -5px rgba(99, 102, 241, 0.15);
             }
             .action-card-header {
-                font-size: 0.75rem;
+                font-size: 0.7rem;
                 font-weight: 700;
                 color: var(--text-secondary);
                 text-transform: uppercase;
@@ -334,18 +349,18 @@ app.get("/", (req, res) => {
                 width: 100%;
             }
             .status-indicator {
-                font-size: 0.65rem;
+                font-size: 0.6rem;
                 font-weight: 700;
                 color: var(--text-secondary);
                 display: flex;
                 align-items: center;
-                gap: 0.35rem;
+                gap: 0.3rem;
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
             }
             .indicator-dot {
-                width: 6px;
-                height: 6px;
+                width: 5px;
+                height: 5px;
                 border-radius: 50%;
                 display: inline-block;
             }
@@ -354,9 +369,9 @@ app.get("/", (req, res) => {
             .dot-amber { background-color: #fbbf24; box-shadow: 0 0 8px #fbbf24; }
 
             .action-card-title {
-                font-size: 1.1rem;
+                font-size: 1rem;
                 font-weight: 700;
-                margin-top: 0.5rem;
+                margin-top: 0.25rem;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
@@ -372,13 +387,13 @@ app.get("/", (req, res) => {
             .gateway-list {
                 display: flex;
                 flex-direction: column;
-                gap: 0.75rem;
+                gap: 0.5rem;
             }
             .gateway-item {
                 background: rgba(0, 0, 0, 0.2);
                 border: 1px solid var(--border-color);
-                border-radius: 16px;
-                padding: 0.75rem 1rem;
+                border-radius: 12px;
+                padding: 0.6rem 0.85rem;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
@@ -391,13 +406,13 @@ app.get("/", (req, res) => {
             .gateway-path-box {
                 display: flex;
                 align-items: center;
-                gap: 0.75rem;
+                gap: 0.6rem;
             }
             .method-badge {
                 font-family: 'JetBrains Mono', monospace;
-                font-size: 0.7rem;
+                font-size: 0.65rem;
                 font-weight: 800;
-                padding: 0.2rem 0.5rem;
+                padding: 0.15rem 0.4rem;
                 border-radius: 4px;
                 border: 1px solid rgba(16, 185, 129, 0.2);
                 background: rgba(16, 185, 129, 0.08);
@@ -405,16 +420,16 @@ app.get("/", (req, res) => {
             }
             .gateway-path {
                 font-family: 'JetBrains Mono', monospace;
-                font-size: 0.85rem;
+                font-size: 0.8rem;
                 color: var(--text-primary);
             }
             .test-btn {
                 background: rgba(255, 255, 255, 0.04);
                 border: 1px solid var(--border-color);
                 color: var(--text-primary);
-                padding: 0.4rem 0.8rem;
-                border-radius: 8px;
-                font-size: 0.75rem;
+                padding: 0.35rem 0.7rem;
+                border-radius: 6px;
+                font-size: 0.7rem;
                 font-weight: 600;
                 cursor: pointer;
                 transition: all 0.2s;
@@ -430,10 +445,10 @@ app.get("/", (req, res) => {
                 align-items: center;
                 background: rgba(0, 0, 0, 0.4);
                 border: 1px solid var(--border-color);
-                border-radius: 16px;
-                padding: 0.5rem 0.75rem;
-                gap: 0.75rem;
-                margin-bottom: 1.5rem;
+                border-radius: 12px;
+                padding: 0.4rem 0.6rem;
+                gap: 0.6rem;
+                margin-bottom: 0.25rem;
                 transition: border-color 0.3s, box-shadow 0.3s;
             }
             .api-custom-input:focus-within {
@@ -442,12 +457,12 @@ app.get("/", (req, res) => {
             }
             .api-custom-input .method-label {
                 font-family: 'JetBrains Mono', monospace;
-                font-size: 0.75rem;
+                font-size: 0.7rem;
                 font-weight: 800;
                 color: var(--accent);
                 background: rgba(16, 185, 129, 0.08);
-                padding: 0.25rem 0.5rem;
-                border-radius: 6px;
+                padding: 0.2rem 0.4rem;
+                border-radius: 5px;
                 border: 1px solid rgba(16, 185, 129, 0.15);
             }
             .api-custom-input input {
@@ -456,16 +471,16 @@ app.get("/", (req, res) => {
                 border: none;
                 color: var(--text-primary);
                 font-family: 'JetBrains Mono', monospace;
-                font-size: 0.85rem;
+                font-size: 0.8rem;
                 outline: none;
             }
             .api-custom-input .send-btn {
                 background: var(--accent);
                 color: #000;
                 border: none;
-                padding: 0.45rem 1rem;
-                border-radius: 8px;
-                font-size: 0.75rem;
+                padding: 0.4rem 0.8rem;
+                border-radius: 6px;
+                font-size: 0.7rem;
                 font-weight: 700;
                 cursor: pointer;
                 transition: all 0.2s;
@@ -477,10 +492,14 @@ app.get("/", (req, res) => {
             .console-section {
                 background: #020203;
                 border: 1px solid var(--border-color);
-                border-radius: 20px;
-                padding: 1.25rem;
+                border-radius: 16px;
+                padding: 1rem;
                 box-shadow: inset 0 4px 16px rgba(0, 0, 0, 0.6);
                 transition: border-color 0.3s;
+                flex: 1;
+                min-height: 0;
+                display: flex;
+                flex-direction: column;
             }
             .console-section:hover {
                 border-color: rgba(255, 255, 255, 0.08);
@@ -489,8 +508,8 @@ app.get("/", (req, res) => {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 0.75rem;
-                font-size: 0.75rem;
+                margin-bottom: 0.6rem;
+                font-size: 0.7rem;
                 font-weight: 700;
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
@@ -500,15 +519,15 @@ app.get("/", (req, res) => {
             .console-title-area {
                 display: flex;
                 align-items: center;
-                gap: 0.75rem;
+                gap: 0.6rem;
             }
             .console-controls {
                 display: flex;
-                gap: 5px;
+                gap: 4px;
             }
             .control-dot {
-                width: 8px;
-                height: 8px;
+                width: 7px;
+                height: 7px;
                 border-radius: 50%;
                 display: inline-block;
             }
@@ -519,7 +538,7 @@ app.get("/", (req, res) => {
             .console-status-box {
                 display: flex;
                 align-items: center;
-                gap: 0.75rem;
+                gap: 0.6rem;
             }
             .console-status {
                 font-family: 'JetBrains Mono', monospace;
@@ -536,9 +555,9 @@ app.get("/", (req, res) => {
                 background: transparent;
                 border: 1px solid var(--border-color);
                 color: var(--text-secondary);
-                padding: 0.25rem 0.5rem;
-                border-radius: 6px;
-                font-size: 0.65rem;
+                padding: 0.2rem 0.4rem;
+                border-radius: 5px;
+                font-size: 0.6rem;
                 font-weight: 600;
                 cursor: pointer;
                 transition: all 0.2s;
@@ -549,9 +568,10 @@ app.get("/", (req, res) => {
             }
             .console-body {
                 font-family: 'JetBrains Mono', monospace;
-                font-size: 0.8rem;
+                font-size: 0.75rem;
                 color: #34d399;
-                max-height: 180px;
+                flex: 1;
+                min-height: 0;
                 overflow-y: auto;
                 white-space: pre-wrap;
             }
