@@ -1,0 +1,52 @@
+{
+  "isMaintenanceMode": false,
+  "isHighDemandMode": true,
+  "serviceableLocations": [
+    "110001",
+    "10001",
+    "90210"
+  ],
+  "theme": "dark",
+  "queries": [
+    {
+      "id": "1779195309711",
+      "email": "test@example.com",
+      "message": "I am having trouble placing an order. Is the store down?",
+      "category": "General Help",
+      "status": "Resolved",
+      "createdAt": "2026-05-19T12:55:09.711Z"
+    },
+    {
+      "id": "1779195407146",
+      "email": "test@example.com",
+      "message": "I am having trouble placing an order. Is the store down?",
+      "category": "General Help",
+      "status": "Resolved",
+      "createdAt": "2026-05-19T12:56:47.146Z"
+    },
+    {
+      "id": "1779195492938",
+      "email": "test@example.com",
+      "message": "I am having trouble placing an order. Is the store down?",
+      "category": "General Help",
+      "status": "Resolved",
+      "createdAt": "2026-05-19T12:58:12.938Z"
+    },
+    {
+      "id": "1779195636245",
+      "email": "test@example.com",
+      "message": "I am having trouble placing an order. Is the store down?",
+      "category": "General Help",
+      "status": "Resolved",
+      "createdAt": "2026-05-19T13:00:36.245Z"
+    },
+    {
+      "id": "1779195776448",
+      "email": "test@example.com",
+      "message": "I am having trouble placing an order. Is the store down?",
+      "category": "General Help",
+      "status": "Resolved",
+      "createdAt": "2026-05-19T13:02:56.448Z"
+    }
+  ]
+}

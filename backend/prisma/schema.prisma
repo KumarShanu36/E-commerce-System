@@ -54,3 +54,19 @@ model Inventory {
   warehouseId String?
   updatedAt   DateTime @updatedAt
 }
+
+model GlobalSettings {
+  id               String   @id @default("default")
+  isMaintenanceMode Boolean @default(false)
+  isHighDemandMode  Boolean @default(false)
+  updatedAt        DateTime @updatedAt
+}
+
+model ServiceableLocation {
+  id         String   @id @default(uuid())
+  country    String
+  postalCode String   @unique
+  city       String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+}
