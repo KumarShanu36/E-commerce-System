@@ -22,7 +22,7 @@
 
 ## 🌐 Frontend (Render)
 
-👉 [https://your-frontend-link.onrender.com](https://freshcart-store.onrender.com/)
+👉 [[https://freshcart-store.onrender.com/]](https://freshcart-store.onrender.com/)
 
 ## ⚙ Backend API (Render)
 
