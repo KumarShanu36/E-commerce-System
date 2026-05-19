@@ -26,11 +26,16 @@
 
 ## ⚙ Backend API (Render)
 
-👉 https://your-backend-link.onrender.com
+👉 [https://freshcart-core.onrender.com/](https://freshcart-core.onrender.com/)
+
+## 🌐 Admin (Render)
+
+👉 [https://freshcart-store.onrender.com/](https://freshcart-admin.onrender.com/)
+
 
 ## ☁ AWS S3 Deployment
 
-👉 http://your-s3-bucket-link.s3-website-region.amazonaws.com
+👉 http://shanu-ecommerce-website.s3-website-ap-southeast-2.amazonaws.com
 
 ---
 
