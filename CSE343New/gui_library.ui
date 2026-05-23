@@ -1,0 +1,15 @@
+Design this using Qt Designer:
+
+Add QLineEdit widgets:
+
+rollInput, nameInput, balanceInput
+
+isbnInput, titleInput, authorInput
+
+Add QPushButtons:
+
+addStudentButton, addBookButton, viewStudentsButton, viewBooksButton
+
+Add QLabel for titles (e.g., “Student Details”, “Book Details”)
+
+Save as gui_library.ui.

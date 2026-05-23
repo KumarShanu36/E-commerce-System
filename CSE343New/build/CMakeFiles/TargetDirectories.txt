@@ -1,0 +1,5 @@
+/Users/shanu/Desktop/CSE343New/build/CMakeFiles/CSE343NEW.dir
+/Users/shanu/Desktop/CSE343New/build/CMakeFiles/edit_cache.dir
+/Users/shanu/Desktop/CSE343New/build/CMakeFiles/rebuild_cache.dir
+/Users/shanu/Desktop/CSE343New/build/CMakeFiles/CSE343NEW_autogen_timestamp_deps.dir
+/Users/shanu/Desktop/CSE343New/build/CMakeFiles/CSE343NEW_autogen.dir

@@ -33,8 +33,8 @@ export default function Home() {
   const [isHighDemandMode, setIsHighDemandMode] = useState(false);
   const [serviceableLocations, setServiceableLocations] = useState([]);
   const [userPincode, setUserPincode] = useState("");
-  const [isLocationModalOpen, setIsLocationModalOpen] = useState(true);
-  const [locationStatus, setLocationStatus] = useState("pending");
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [locationStatus, setLocationStatus] = useState("detecting");
   
   // Support Ticketing States
   const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -42,6 +42,18 @@ export default function Home() {
   const [helpCategory, setHelpCategory] = useState("General Help");
   const [helpMessage, setHelpMessage] = useState("");
   const [helpSuccess, setHelpSuccess] = useState(false);
+
+  // Advanced AI & Flipkart Ticket States
+  const [activeHelpTab, setActiveHelpTab] = useState("chat"); // 'chat' or 'tickets'
+  const [chatMessages, setChatMessages] = useState([
+    { id: 1, sender: "bot", text: "Welcome to FreshCart Support! 🍏 I am Freshy, your AI assistant. How can I help you today?", timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) }
+  ]);
+  const [chatInput, setChatInput] = useState("");
+  const [isBotTyping, setIsBotTyping] = useState(false);
+  const [ticketList, setTicketList] = useState([]);
+  const [isLoadingTickets, setIsLoadingTickets] = useState(false);
+  const [ticketViewMode, setTicketViewMode] = useState("list"); // 'list' or 'create'
+  const [themeMode, setThemeMode] = useState("light");
 
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -70,23 +82,80 @@ export default function Home() {
   ];
 
   useEffect(() => {
-    const checkStatus = async () => {
+    const savedPincode = localStorage.getItem("userPincode");
+
+    const checkStatusAndLocate = async () => {
+      let currentLocations = [];
       try {
         const res = await fetch(`${API_URL}/api/v1/settings`);
         if (res.ok) {
           const data = await res.json();
           setIsMaintenanceMode(data.isMaintenanceMode);
           setIsHighDemandMode(data.isHighDemandMode);
-          setServiceableLocations(data.serviceableLocations || []);
+          currentLocations = data.serviceableLocations || [];
+          setServiceableLocations(currentLocations);
           // Sync Theme
           if (data.theme === "dark") {
             document.documentElement.classList.add("dark");
+            setThemeMode("dark");
           } else {
             document.documentElement.classList.remove("dark");
+            setThemeMode("light");
           }
         }
       } catch (e) {
         console.error("Failed to fetch system status");
+      }
+
+      // If there is a saved pincode and it's in the serviceable list, accept it immediately
+      if (savedPincode && currentLocations.includes(savedPincode)) {
+        setUserPincode(savedPincode);
+        setLocationStatus("serviceable");
+        setIsLocationModalOpen(false);
+        return;
+      }
+
+      // Otherwise, request geolocation
+      if (typeof window !== "undefined" && "geolocation" in navigator) {
+        setIsLocationModalOpen(true);
+        setLocationStatus("detecting");
+
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude, longitude } = position.coords;
+            try {
+              const geoRes = await fetch(
+                `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+              );
+              if (geoRes.ok) {
+                const geoData = await geoRes.json();
+                const pincode = geoData.postcode;
+                if (pincode) {
+                  setUserPincode(pincode);
+                  if (currentLocations.includes(pincode)) {
+                    localStorage.setItem("userPincode", pincode);
+                    setLocationStatus("serviceable");
+                    setIsLocationModalOpen(false);
+                  } else {
+                    setLocationStatus("unserviceable");
+                  }
+                  return;
+                }
+              }
+            } catch (err) {
+              console.error("Reverse geocoding failed", err);
+            }
+            setLocationStatus("pending");
+          },
+          (error) => {
+            console.warn("Geolocation prompt rejected or failed", error);
+            setLocationStatus("pending");
+          },
+          { timeout: 8000 }
+        );
+      } else {
+        setIsLocationModalOpen(true);
+        setLocationStatus("pending");
       }
     };
 
@@ -103,7 +172,8 @@ export default function Home() {
         setIsLoading(false);
       }
     };
-    checkStatus();
+
+    checkStatusAndLocate();
     fetchProducts();
 
     const timer = setInterval(() => {
@@ -185,10 +255,83 @@ export default function Home() {
   const handleLocationSubmit = (e) => {
     e.preventDefault();
     if (serviceableLocations.includes(userPincode)) {
+      localStorage.setItem("userPincode", userPincode);
       setLocationStatus("serviceable");
       setIsLocationModalOpen(false);
     } else {
       setLocationStatus("unserviceable");
+    }
+  };
+
+  const toggleTheme = () => {
+    if (document.documentElement.classList.contains("dark")) {
+      document.documentElement.classList.remove("dark");
+      setThemeMode("light");
+    } else {
+      document.documentElement.classList.add("dark");
+      setThemeMode("dark");
+    }
+  };
+
+  const handleSendChat = (e) => {
+    e.preventDefault();
+    if (!chatInput.trim()) return;
+
+    const userMsg = {
+      id: Date.now(),
+      sender: "user",
+      text: chatInput,
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    };
+
+    setChatMessages((prev) => [...prev, userMsg]);
+    const inputMsg = chatInput.toLowerCase();
+    setChatInput("");
+    setIsBotTyping(true);
+
+    setTimeout(() => {
+      let responseText = "I appreciate your message. I am an automated assistant, but you can easily submit a formal support ticket in the 'Support Tickets' tab and a human representative will look into this right away!";
+      
+      if (inputMsg.includes("order") || inputMsg.includes("delivery") || inputMsg.includes("time") || inputMsg.includes("arrive") || inputMsg.includes("late")) {
+        responseText = "All FreshCart orders are processed instantly at our local dark stores and delivered in 10-15 minutes! You can track your order status in the 'Orders' section.";
+      } else if (inputMsg.includes("refund") || inputMsg.includes("return") || inputMsg.includes("money") || inputMsg.includes("cancel")) {
+        responseText = "We offer a 100% satisfaction guarantee. If any product is damaged or not fresh, we will refund it immediately to your original payment method. Contact us at support@freshcart.com.";
+      } else if (inputMsg.includes("service") || inputMsg.includes("pincode") || inputMsg.includes("area") || inputMsg.includes("location") || inputMsg.includes("deliver")) {
+        responseText = `We currently deliver to the following active pincodes: ${serviceableLocations.join(", ") || "110001, 10001, 75001"}. You can click on the 'Delivery Location' link in the navbar to test another location.`;
+      } else if (inputMsg.includes("payment") || inputMsg.includes("card") || inputMsg.includes("cash") || inputMsg.includes("upi") || inputMsg.includes("pay")) {
+        responseText = "We accept all major credit/debit cards, Net Banking, and popular UPI wallets. Cash on Delivery is also available for all serviceable locations.";
+      } else if (inputMsg.includes("contact") || inputMsg.includes("email") || inputMsg.includes("number") || inputMsg.includes("phone") || inputMsg.includes("human") || inputMsg.includes("person") || inputMsg.includes("help")) {
+        responseText = "You can email our customer support office at support@freshcart.com, call us at +91 70141 23456, or write a direct message in the 'Support Tickets' tab. We respond within 2 hours!";
+      } else if (inputMsg.includes("hi") || inputMsg.includes("hello") || inputMsg.includes("greetings") || inputMsg.includes("hey")) {
+        responseText = "Hello! I am Freshy, your virtual assistant. How can I help you today? Ask me about deliveries, refunds, or payment modes.";
+      }
+
+      const botMsg = {
+        id: Date.now() + 1,
+        sender: "bot",
+        text: responseText,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+
+      setChatMessages((prev) => [...prev, botMsg]);
+      setIsBotTyping(false);
+    }, 1000);
+  };
+
+  const loadUserTickets = async (emailToFetch) => {
+    if (!emailToFetch) return;
+    setIsLoadingTickets(true);
+    try {
+      const res = await fetch(`${API_URL}/api/v1/settings/queries`);
+      if (res.ok) {
+        const data = await res.json();
+        const userTickets = data.filter((q) => q.email.toLowerCase() === emailToFetch.toLowerCase());
+        setTicketList(userTickets.reverse());
+      }
+    } catch (e) {
+      console.error("Failed to load tickets", e);
+    } finally {
+      setIsLoadingTickets(false);
     }
   };
 
@@ -206,8 +349,9 @@ export default function Home() {
       });
       if (res.ok) {
         setHelpSuccess(true);
-        setHelpEmail("");
         setHelpMessage("");
+        await loadUserTickets(helpEmail);
+        setTicketViewMode("list");
         setTimeout(() => setHelpSuccess(false), 3000);
       }
     } catch (err) {
@@ -284,24 +428,35 @@ export default function Home() {
           </div>
         )}
         <div className="max-w-[1280px] mx-auto px-4 lg:px-8 py-3 flex items-center gap-4 md:gap-10">
-          <div className="flex flex-col items-start border-r border-zinc-200 dark:border-zinc-800 pr-8 mr-2 hidden lg:flex">
-            <span className="text-xl italic font-black text-emerald-600 tracking-tighter leading-none">
-              FRESHCART.
-            </span>
-            <div className="flex items-center gap-1 mt-1">
-              <span className="text-[10px] font-black text-orange-500 uppercase tracking-widest animate-pulse">
-                10-15 MINS
+          <div className="flex items-center gap-3 border-r border-zinc-200 dark:border-zinc-800 pr-8 mr-2 hidden lg:flex">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+              <path d="M12 9l2 2 4-4" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+            </svg>
+            <div className="flex flex-col">
+              <span className="text-2xl font-black italic tracking-tighter text-emerald-600 dark:text-emerald-500 leading-none">
+                FreshCart
               </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span className="text-[8px] font-black text-orange-500 uppercase tracking-widest mt-1 animate-pulse">
+                10-15 MINS DELIVERED
+              </span>
             </div>
           </div>
 
-          <div className="flex flex-col items-start min-w-[120px] hidden xl:flex">
+          <div 
+            onClick={() => {
+              setIsLocationModalOpen(true);
+              setLocationStatus("pending");
+            }}
+            className="flex flex-col items-start min-w-[120px] hidden xl:flex cursor-pointer hover:opacity-85 transition-opacity"
+          >
             <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">
               Delivery Location
             </span>
             <div className="flex items-center gap-1 text-xs font-bold text-zinc-900 dark:text-white">
-              <span>{userPincode ? `Postal Code: ${userPincode}` : "International"}</span>
+              <span>{userPincode ? `Postal Code: ${userPincode}` : "Select Location"}</span>
               <span className="text-[8px]">▼</span>
             </div>
           </div>
@@ -322,6 +477,15 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-6">
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className="w-10 h-10 rounded-full border border-zinc-200 dark:border-zinc-800 flex items-center justify-center bg-white dark:bg-zinc-900 shadow-sm text-lg text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-850 transition-all cursor-pointer hover:rotate-12 duration-300 active:scale-95"
+              title={themeMode === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {themeMode === "dark" ? "☀️" : "🌙"}
+            </button>
+
             {isLoggedIn ? (
               <div className="flex items-center gap-4">
                 <button
@@ -475,84 +639,99 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {products.map((product) => {
-              const id = product.id || product._id;
-              const qty = cart[id] || 0;
-              return (
-                <div
-                  key={id}
-                  className="bg-white dark:bg-zinc-900 rounded-3xl p-4 shadow-sm hover:shadow-xl transition-all border border-zinc-100 dark:border-zinc-800 group"
-                >
-                  <div className="aspect-square bg-zinc-50 dark:bg-zinc-800 rounded-2xl mb-4 relative overflow-hidden flex items-center justify-center">
-                    <span className="text-5xl opacity-40">🛒</span>
-                    {product.mrp > product.discountedPrice && (
-                      <span className="absolute top-3 left-3 bg-rose-600 text-white text-[9px] font-black px-2 py-1 rounded-full">
-                        {Math.round(
-                          ((product.mrp - product.discountedPrice) /
-                            product.mrp) *
-                            100,
-                        )}
-                        % OFF
-                      </span>
-                    )}
-                    <button
-                      onClick={() => toggleWishlist(id)}
-                      className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 dark:bg-black/40 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      {isInWishlist(id) ? "❤️" : "🤍"}
-                    </button>
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, idx) => (
+                <div key={idx} className="bg-white dark:bg-zinc-900 rounded-3xl p-4 shadow-sm border border-zinc-100 dark:border-zinc-800 animate-pulse">
+                  <div className="aspect-square bg-zinc-100 dark:bg-zinc-800 rounded-2xl mb-4"></div>
+                  <div className="h-4 bg-zinc-200 dark:bg-zinc-800 rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-zinc-100 dark:bg-zinc-800 rounded w-1/2 mb-4"></div>
+                  <div className="flex justify-between items-center">
+                    <div className="h-6 bg-zinc-200 dark:bg-zinc-800 rounded w-1/3"></div>
+                    <div className="h-4 bg-zinc-100 dark:bg-zinc-800 rounded w-1/4"></div>
                   </div>
-
-                  <h4 className="font-bold text-zinc-900 dark:text-white truncate mb-1">
-                    {product.name}
-                  </h4>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-2">
-                    {product.category}
-                  </p>
-
-                  <div className="flex items-end justify-between gap-2 mb-4">
-                    <div>
-                      <span className="text-xl font-black text-zinc-900 dark:text-white">
-                        ${product.discountedPrice}
-                      </span>
+                  <div className="h-10 bg-zinc-100 dark:bg-zinc-800 rounded-xl mt-4"></div>
+                </div>
+              ))
+            ) : (
+              products.map((product) => {
+                const id = product.id || product._id;
+                const qty = cart[id] || 0;
+                return (
+                  <div
+                    key={id}
+                    className="bg-white dark:bg-zinc-900 rounded-3xl p-4 shadow-sm hover:shadow-xl transition-all border border-zinc-100 dark:border-zinc-800 group"
+                  >
+                    <div className="aspect-square bg-zinc-50 dark:bg-zinc-800 rounded-2xl mb-4 relative overflow-hidden flex items-center justify-center">
+                      <span className="text-5xl opacity-40">🛒</span>
                       {product.mrp > product.discountedPrice && (
-                        <span className="text-xs text-zinc-400 line-through ml-2 font-medium">
-                          ${product.mrp}
+                        <span className="absolute top-3 left-3 bg-rose-600 text-white text-[9px] font-black px-2 py-1 rounded-full">
+                          {Math.round(
+                            ((product.mrp - product.discountedPrice) /
+                              product.mrp) *
+                              100,
+                          )}
+                          % OFF
                         </span>
                       )}
-                    </div>
-                    <span className="text-[10px] font-bold text-zinc-400">
-                      500g
-                    </span>
-                  </div>
-
-                  {qty === 0 ? (
-                    <button
-                      onClick={() => updateQuantity(id, 1)}
-                      className="w-full py-2.5 rounded-xl border border-emerald-600 text-emerald-600 font-black text-xs uppercase tracking-widest hover:bg-emerald-600 hover:text-white transition-all active:scale-95"
-                    >
-                      Add to Cart
-                    </button>
-                  ) : (
-                    <div className="flex items-center justify-between bg-emerald-600 rounded-xl p-1 text-white">
                       <button
-                        onClick={() => updateQuantity(id, -1)}
-                        className="w-8 h-8 flex items-center justify-center font-bold hover:bg-white/10 rounded-lg"
+                        onClick={() => toggleWishlist(id)}
+                        className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 dark:bg-black/40 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
                       >
-                        {qty === 1 ? "🗑️" : "−"}
+                        {isInWishlist(id) ? "❤️" : "🤍"}
                       </button>
-                      <span className="font-black text-sm">{qty}</span>
+                    </div>
+
+                    <h4 className="font-bold text-zinc-900 dark:text-white truncate mb-1">
+                      {product.name}
+                    </h4>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-2">
+                      {product.category}
+                    </p>
+
+                    <div className="flex items-end justify-between gap-2 mb-4">
+                      <div>
+                        <span className="text-xl font-black text-zinc-900 dark:text-white">
+                          ${product.discountedPrice}
+                        </span>
+                        {product.mrp > product.discountedPrice && (
+                          <span className="text-xs text-zinc-400 line-through ml-2 font-medium">
+                            ${product.mrp}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[10px] font-bold text-zinc-400">
+                        500g
+                      </span>
+                    </div>
+
+                    {qty === 0 ? (
                       <button
                         onClick={() => updateQuantity(id, 1)}
-                        className="w-8 h-8 flex items-center justify-center font-bold hover:bg-white/10 rounded-lg"
+                        className="w-full py-2.5 rounded-xl border border-emerald-600 text-emerald-600 font-black text-xs uppercase tracking-widest hover:bg-emerald-600 hover:text-white transition-all active:scale-95"
                       >
-                        +
+                        Add to Cart
                       </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                    ) : (
+                      <div className="flex items-center justify-between bg-emerald-600 rounded-xl p-1 text-white">
+                        <button
+                          onClick={() => updateQuantity(id, -1)}
+                          className="w-8 h-8 flex items-center justify-center font-bold hover:bg-white/10 rounded-lg"
+                        >
+                          {qty === 1 ? "🗑️" : "−"}
+                        </button>
+                        <span className="font-black text-sm">{qty}</span>
+                        <button
+                          onClick={() => updateQuantity(id, 1)}
+                          className="w-8 h-8 flex items-center justify-center font-bold hover:bg-white/10 rounded-lg"
+                        >
+                          +
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
 
@@ -951,13 +1130,37 @@ export default function Home() {
       {isLocationModalOpen && (
         <div className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-xl flex items-center justify-center p-6 animate-in fade-in">
           <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-[40px] p-10 shadow-2xl border border-zinc-200 dark:border-zinc-800 text-center">
-            {locationStatus !== "unserviceable" ? (
+            {locationStatus === "detecting" && (
               <>
+                <div className="w-24 h-24 mb-8 mx-auto relative flex items-center justify-center bg-emerald-50 dark:bg-emerald-500/10 rounded-full">
+                  <span className="text-4xl animate-bounce">📍</span>
+                  <span className="absolute inset-0 rounded-full border-2 border-emerald-500/30 animate-ping"></span>
+                </div>
                 <h2 className="text-3xl font-black italic tracking-tighter uppercase mb-2 text-zinc-900 dark:text-white">
-                  Check Delivery
+                  Locating You...
                 </h2>
-                <p className="text-zinc-500 font-medium text-sm mb-8">
-                  Enter your postal code to see if we deliver to your area.
+                <p className="text-zinc-500 dark:text-zinc-400 font-medium text-sm mb-8 leading-relaxed">
+                  We are detecting your coordinates to check delivery serviceability in your area.
+                </p>
+                <button
+                  onClick={() => setLocationStatus("pending")}
+                  className="text-xs font-black text-emerald-600 hover:text-emerald-500 uppercase tracking-widest transition-colors"
+                >
+                  Enter Pincode Manually
+                </button>
+              </>
+            )}
+
+            {locationStatus === "pending" && (
+              <>
+                <div className="w-16 h-16 mb-6 mx-auto text-3xl flex items-center justify-center bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 rounded-full">
+                  🏪
+                </div>
+                <h2 className="text-3xl font-black italic tracking-tighter uppercase mb-2 text-zinc-900 dark:text-white">
+                  Delivery Pincode
+                </h2>
+                <p className="text-zinc-500 dark:text-zinc-400 font-medium text-xs mb-6">
+                  Please enter your pincode manually to verify delivery service.
                 </p>
                 <form onSubmit={handleLocationSubmit} className="flex flex-col gap-4">
                   <input
@@ -965,18 +1168,41 @@ export default function Home() {
                     value={userPincode}
                     onChange={(e) => setUserPincode(e.target.value)}
                     required
-                    placeholder="e.g. 110001"
+                    placeholder="Enter 6-digit Pincode"
                     className="w-full px-6 py-4 bg-zinc-50 dark:bg-zinc-950 rounded-2xl border border-zinc-200 dark:border-zinc-800 focus:ring-4 focus:ring-emerald-500/20 outline-none font-bold text-center tracking-widest text-lg text-zinc-900 dark:text-white"
                   />
                   <button
                     type="submit"
                     className="w-full py-4 bg-emerald-600 text-white font-black rounded-2xl hover:bg-emerald-500 uppercase text-xs tracking-widest shadow-lg shadow-emerald-500/20 active:scale-95 transition-all"
                   >
-                    Check Now
+                    Verify Delivery Area
                   </button>
                 </form>
+
+                {serviceableLocations.length > 0 && (
+                  <div className="mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-800">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-3">
+                      Active Serviceable Areas
+                    </p>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {serviceableLocations.slice(0, 5).map((pin) => (
+                        <button
+                          key={pin}
+                          onClick={() => {
+                            setUserPincode(pin);
+                          }}
+                          className="px-3.5 py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 text-zinc-700 dark:text-zinc-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-bold text-xs rounded-full border border-transparent hover:border-emerald-500/20 transition-all"
+                        >
+                          📍 {pin}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </>
-            ) : (
+            )}
+
+            {locationStatus === "unserviceable" && (
               <>
                 <div className="w-24 h-24 mb-6 mx-auto text-5xl flex items-center justify-center bg-orange-100 dark:bg-orange-500/10 text-orange-500 rounded-full animate-bounce">
                   📍
@@ -984,15 +1210,15 @@ export default function Home() {
                 <h2 className="text-3xl font-black italic tracking-tighter uppercase mb-2 text-zinc-900 dark:text-white">
                   Coming Soon
                 </h2>
-                <p className="text-zinc-500 dark:text-zinc-400 font-medium text-sm mb-8">
-                  We are currently not delivering to <strong>{userPincode}</strong>. We are expanding rapidly and will be there soon!
+                <p className="text-zinc-500 dark:text-zinc-400 font-medium text-sm mb-8 leading-relaxed">
+                  We are currently not delivering to <strong>{userPincode}</strong>. We are expanding rapidly and will be in your neighborhood soon!
                 </p>
                 <button
                   onClick={() => {
                     setLocationStatus("pending");
                     setUserPincode("");
                   }}
-                  className="w-full py-4 bg-zinc-900 dark:bg-zinc-850 text-white font-black rounded-2xl hover:bg-zinc-800 uppercase text-xs tracking-widest active:scale-95 transition-all"
+                  className="w-full py-4 bg-zinc-900 dark:bg-zinc-800 text-white font-black rounded-2xl hover:bg-zinc-800 uppercase text-xs tracking-widest active:scale-95 transition-all"
                 >
                   Try Another Pincode
                 </button>
@@ -1011,64 +1237,287 @@ export default function Home() {
       </button>
 
       {isHelpOpen && (
-        <div className="fixed bottom-24 right-6 z-[100] w-96 bg-white dark:bg-zinc-900 rounded-[32px] shadow-2xl border border-zinc-200 dark:border-zinc-800 p-8 animate-in slide-in-from-bottom duration-350">
-          {helpSuccess ? (
-            <div className="text-center py-8">
-              <span className="text-5xl">✅</span>
-              <h3 className="font-black text-xl tracking-tight mt-4 uppercase text-zinc-900 dark:text-white">Submitted!</h3>
-              <p className="text-zinc-500 text-sm mt-2">Our support desk will review your query and reach out shortly.</p>
+        <div className="fixed bottom-24 right-6 z-[100] w-full max-w-[420px] bg-white dark:bg-zinc-900 rounded-[32px] shadow-2xl border border-zinc-200 dark:border-zinc-800 p-6 flex flex-col max-h-[580px] animate-in slide-in-from-bottom duration-350">
+          <div className="flex justify-between items-center pb-4 border-b border-zinc-100 dark:border-zinc-850">
+            <div>
+              <h3 className="font-black text-lg tracking-tight uppercase text-zinc-900 dark:text-white flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                FreshCart Support
+              </h3>
+              <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">Customer Care Center</p>
             </div>
-          ) : (
-            <>
-              <div className="mb-4">
-                <h3 className="font-black text-xl tracking-tight uppercase text-zinc-900 dark:text-white">Help & Support</h3>
-                <p className="text-zinc-500 text-xs mt-1">Need assistance? Raise a query below.</p>
-              </div>
-              <form onSubmit={handleHelpSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-zinc-400 mb-1">Email Address</label>
+            <button
+              onClick={() => setIsHelpOpen(false)}
+              className="text-zinc-450 hover:text-zinc-600 dark:hover:text-white text-xl font-bold transition-colors"
+            >
+              &times;
+            </button>
+          </div>
+
+          {/* Tabs header */}
+          <div className="flex bg-zinc-100 dark:bg-zinc-950 p-1 rounded-xl my-4 gap-1">
+            <button
+              onClick={() => setActiveHelpTab("chat")}
+              className={`flex-1 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all ${
+                activeHelpTab === "chat"
+                  ? "bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+              }`}
+            >
+              💬 AI Assistant
+            </button>
+            <button
+              onClick={() => {
+                setActiveHelpTab("tickets");
+                if (helpEmail) {
+                  loadUserTickets(helpEmail);
+                }
+              }}
+              className={`flex-1 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all ${
+                activeHelpTab === "tickets"
+                  ? "bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+              }`}
+            >
+              🎫 Support Tickets
+            </button>
+          </div>
+
+          {/* Tab contents */}
+          <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+            {activeHelpTab === "chat" ? (
+              <div className="flex-1 flex flex-col min-h-0">
+                {/* Chat window */}
+                <div className="flex-1 overflow-y-auto pr-1 space-y-4 mb-4 min-h-[220px]">
+                  {chatMessages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}
+                    >
+                      <div
+                        className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                          msg.sender === "user"
+                            ? "bg-emerald-600 text-white rounded-tr-none"
+                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-tl-none border border-zinc-200/20"
+                        }`}
+                      >
+                        {msg.text}
+                      </div>
+                      <span className="text-[9px] text-zinc-400 mt-1 px-1 font-bold">{msg.timestamp}</span>
+                    </div>
+                  ))}
+                  {isBotTyping && (
+                    <div className="flex items-center gap-1.5 p-3 bg-zinc-100 dark:bg-zinc-800 rounded-2xl rounded-tl-none w-16 justify-center">
+                      <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce"></span>
+                      <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                      <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Quick actions chips */}
+                <div className="flex gap-1.5 overflow-x-auto pb-3 scrollbar-none flex-shrink-0">
+                  {[
+                    { text: "⏱️ Delivery Speed", q: "How fast is delivery?" },
+                    { text: "💸 Refund Policy", q: "Can I get a refund?" },
+                    { text: "📍 Service Areas", q: "List serviceable pincodes" },
+                    { text: "💳 Payment Modes", q: "What payment options are available?" }
+                  ].map((chip) => (
+                    <button
+                      key={chip.text}
+                      onClick={() => {
+                        setChatInput(chip.q);
+                      }}
+                      className="px-3 py-1.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200/50 dark:border-zinc-800 hover:border-emerald-500/30 text-zinc-600 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-full text-[10px] font-bold whitespace-nowrap transition-all"
+                    >
+                      {chip.text}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Footer Input */}
+                <form onSubmit={handleSendChat} className="flex gap-2 border-t border-zinc-100 dark:border-zinc-850 pt-3 flex-shrink-0">
                   <input
-                    type="email"
-                    required
-                    value={helpEmail}
-                    onChange={(e) => setHelpEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-sm"
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    placeholder="Ask Freshy about your delivery, refunds..."
+                    className="flex-1 px-4 py-3 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white placeholder:text-zinc-400 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                   />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-zinc-400 mb-1">Issue Category</label>
-                  <select
-                    value={helpCategory}
-                    onChange={(e) => setHelpCategory(e.target.value)}
-                    className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-sm font-bold"
+                  <button
+                    type="submit"
+                    className="px-4 bg-emerald-600 text-white font-black rounded-xl hover:bg-emerald-500 text-xs uppercase tracking-widest transition-colors active:scale-95"
                   >
-                    <option value="Delivery Issue">Delivery Issue</option>
-                    <option value="Payment/Refund">Payment/Refund</option>
-                    <option value="Product Quality">Product Quality</option>
-                    <option value="General Query">General Query</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[9px] font-black uppercase tracking-widest text-zinc-400 mb-1">Describe your problem</label>
-                  <textarea
-                    required
-                    rows="3"
-                    value={helpMessage}
-                    onChange={(e) => setHelpMessage(e.target.value)}
-                    placeholder="Tell us what went wrong..."
-                    className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-sm resize-none"
-                  ></textarea>
-                </div>
-                <button
-                  type="submit"
-                  className="w-full py-4 bg-emerald-600 text-white font-black rounded-xl hover:bg-emerald-500 uppercase text-xs tracking-widest active:scale-[0.98] transition-all"
-                >
-                  Send Ticket
-                </button>
-              </form>
-            </>
-          )}
+                    Send
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <div className="flex-1 flex flex-col min-h-0">
+                {/* Support Tickets Section */}
+                {!helpEmail ? (
+                  <div className="flex-1 flex flex-col items-center justify-center p-4">
+                    <span className="text-4xl mb-3">📧</span>
+                    <h4 className="font-bold text-sm text-zinc-800 dark:text-white mb-2">Track Your Tickets</h4>
+                    <p className="text-zinc-500 text-xs text-center mb-6">Enter your email address associated with your orders to review tickets or create new ones.</p>
+                    <div className="w-full flex flex-col gap-3">
+                      <input
+                        type="email"
+                        id="ticketEmailInput"
+                        placeholder="Enter your email"
+                        className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white text-center text-xs outline-none focus:ring-2 focus:ring-emerald-500/50"
+                      />
+                      <button
+                        onClick={() => {
+                          const inputVal = document.getElementById("ticketEmailInput").value;
+                          if (inputVal && inputVal.includes("@")) {
+                            setHelpEmail(inputVal);
+                            loadUserTickets(inputVal);
+                          } else {
+                            alert("Please enter a valid email address");
+                          }
+                        }}
+                        className="w-full py-3 bg-emerald-600 text-white font-black text-xs rounded-xl uppercase tracking-widest shadow-md active:scale-98 hover:bg-emerald-500 transition-colors"
+                      >
+                        Find My Tickets
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex-1 flex flex-col min-h-0">
+                    <div className="flex justify-between items-center mb-4 flex-shrink-0 bg-zinc-50 dark:bg-zinc-950 p-3 rounded-xl border border-zinc-200/20">
+                      <div className="truncate pr-2">
+                        <p className="text-[8px] font-black uppercase text-zinc-400">Viewing tickets for</p>
+                        <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300 truncate">{helpEmail}</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setHelpEmail("");
+                          setTicketList([]);
+                        }}
+                        className="text-[9px] font-black uppercase text-rose-500 hover:underline"
+                      >
+                        Change
+                      </button>
+                    </div>
+
+                    {ticketViewMode === "list" ? (
+                      <div className="flex-1 flex flex-col min-h-0">
+                        {/* Actions bar */}
+                        <div className="flex justify-between items-center mb-3 flex-shrink-0">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-zinc-450">
+                            Ticket List ({ticketList.length})
+                          </span>
+                          <button
+                            onClick={() => setTicketViewMode("create")}
+                            className="px-3 py-1 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors"
+                          >
+                            + Raise Ticket
+                          </button>
+                        </div>
+
+                        {/* Tickets scrolling container */}
+                        <div className="flex-1 overflow-y-auto space-y-3 pr-1 min-h-[220px]">
+                          {isLoadingTickets ? (
+                            <div className="h-full flex items-center justify-center text-zinc-400">
+                              <span className="animate-spin text-2xl mr-2">⏳</span>
+                              <span className="text-xs font-bold uppercase">Loading Tickets...</span>
+                            </div>
+                          ) : ticketList.length === 0 ? (
+                            <div className="h-full flex flex-col items-center justify-center text-zinc-300 py-10">
+                              <span className="text-5xl mb-2">🎫</span>
+                              <p className="font-bold text-xs uppercase tracking-widest text-zinc-400">No Tickets Found</p>
+                              <button
+                                onClick={() => setTicketViewMode("create")}
+                                className="mt-4 text-emerald-600 text-xs font-bold hover:underline"
+                              >
+                                Create a ticket to get help
+                              </button>
+                            </div>
+                          ) : (
+                            ticketList.map((ticket) => (
+                              <div
+                                key={ticket.id}
+                                className="p-4 bg-zinc-50 dark:bg-zinc-950 rounded-2xl border border-zinc-200/20 hover:border-emerald-500/20 transition-all text-left"
+                              >
+                                <div className="flex justify-between items-start mb-2">
+                                  <span className="text-[10px] font-black text-zinc-400">
+                                    ID: #{ticket.id.slice(-6)}
+                                  </span>
+                                  <span
+                                    className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                                      ticket.status === "Resolved"
+                                        ? "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-400"
+                                        : "bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-400"
+                                    }`}
+                                  >
+                                    {ticket.status}
+                                  </span>
+                                </div>
+                                <h5 className="font-bold text-xs text-zinc-800 dark:text-white mb-1">
+                                  [{ticket.category}]
+                                </h5>
+                                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-relaxed">
+                                  {ticket.message}
+                                </p>
+                                <p className="text-[8px] text-zinc-400 font-bold uppercase mt-3">
+                                  Raised on {new Date(ticket.createdAt).toLocaleDateString()}
+                                </p>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex-1 overflow-y-auto pr-1 text-left min-h-[220px]">
+                        <div className="flex justify-between items-center mb-4 flex-shrink-0">
+                          <h4 className="font-black text-sm uppercase text-zinc-800 dark:text-white">New Ticket</h4>
+                          <button
+                            onClick={() => setTicketViewMode("list")}
+                            className="text-xs font-bold text-zinc-400 hover:text-zinc-650 dark:hover:text-white"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                        <form onSubmit={handleHelpSubmit} className="space-y-4">
+                          <div>
+                            <label className="block text-[9px] font-black uppercase tracking-widest text-zinc-450 mb-1">Category</label>
+                            <select
+                              value={helpCategory}
+                              onChange={(e) => setHelpCategory(e.target.value)}
+                              className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-xs font-bold"
+                            >
+                              <option value="Delivery Issue">Delivery Issue</option>
+                              <option value="Payment/Refund">Payment/Refund</option>
+                              <option value="Product Quality">Product Quality</option>
+                              <option value="General Query">General Query</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-black uppercase tracking-widest text-zinc-450 mb-1">Problem Description</label>
+                            <textarea
+                              required
+                              rows="3"
+                              value={helpMessage}
+                              onChange={(e) => setHelpMessage(e.target.value)}
+                              placeholder="Tell us what went wrong..."
+                              className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-xs resize-none"
+                            ></textarea>
+                          </div>
+                          <button
+                            type="submit"
+                            className="w-full py-4 bg-emerald-600 text-white font-black rounded-xl hover:bg-emerald-500 uppercase text-xs tracking-widest active:scale-95 transition-all shadow-md"
+                          >
+                            Submit Ticket
+                          </button>
+                        </form>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
