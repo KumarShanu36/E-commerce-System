@@ -34,7 +34,7 @@ export default function Home() {
   const [serviceableLocations, setServiceableLocations] = useState([]);
   const [userPincode, setUserPincode] = useState("");
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
-  const [locationStatus, setLocationStatus] = useState("detecting");
+  const [locationStatus, setLocationStatus] = useState("pending");
   
   // Support Ticketing States
   const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -115,48 +115,9 @@ export default function Home() {
         return;
       }
 
-      // Otherwise, request geolocation
-      if (typeof window !== "undefined" && "geolocation" in navigator) {
-        setIsLocationModalOpen(true);
-        setLocationStatus("detecting");
-
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const { latitude, longitude } = position.coords;
-            try {
-              const geoRes = await fetch(
-                `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
-              );
-              if (geoRes.ok) {
-                const geoData = await geoRes.json();
-                const pincode = geoData.postcode;
-                if (pincode) {
-                  setUserPincode(pincode);
-                  if (currentLocations.includes(pincode)) {
-                    localStorage.setItem("userPincode", pincode);
-                    setLocationStatus("serviceable");
-                    setIsLocationModalOpen(false);
-                  } else {
-                    setLocationStatus("unserviceable");
-                  }
-                  return;
-                }
-              }
-            } catch (err) {
-              console.error("Reverse geocoding failed", err);
-            }
-            setLocationStatus("pending");
-          },
-          (error) => {
-            console.warn("Geolocation prompt rejected or failed", error);
-            setLocationStatus("pending");
-          },
-          { timeout: 8000 }
-        );
-      } else {
-        setIsLocationModalOpen(true);
-        setLocationStatus("pending");
-      }
+      // Otherwise, open the location modal as a popup (Blinkit style)
+      setIsLocationModalOpen(true);
+      setLocationStatus("pending");
     };
 
     const fetchProducts = async () => {
@@ -249,6 +210,50 @@ export default function Home() {
       }
     } catch (error) {
       alert("Authentication error. Please check your connection.");
+    }
+  };
+
+  const triggerDetectLocation = () => {
+    if (typeof window !== "undefined" && "geolocation" in navigator) {
+      setLocationStatus("detecting");
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            const geoRes = await fetch(
+              `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+            );
+            if (geoRes.ok) {
+              const geoData = await geoRes.json();
+              const pincode = geoData.postcode;
+              if (pincode) {
+                setUserPincode(pincode);
+                if (serviceableLocations.includes(pincode)) {
+                  localStorage.setItem("userPincode", pincode);
+                  setLocationStatus("serviceable");
+                  setIsLocationModalOpen(false);
+                } else {
+                  setLocationStatus("unserviceable");
+                }
+                return;
+              }
+            }
+          } catch (err) {
+            console.error("Reverse geocoding failed", err);
+          }
+          alert("Could not detect pincode. Please enter manually.");
+          setLocationStatus("pending");
+        },
+        (error) => {
+          console.warn("Geolocation prompt rejected or failed", error);
+          alert("Location permission denied. Please search your pincode manually.");
+          setLocationStatus("pending");
+        },
+        { timeout: 8000 }
+      );
+    } else {
+      alert("Geolocation is not supported by your browser.");
     }
   };
 
@@ -450,13 +455,13 @@ export default function Home() {
               setIsLocationModalOpen(true);
               setLocationStatus("pending");
             }}
-            className="flex flex-col items-start min-w-[120px] hidden xl:flex cursor-pointer hover:opacity-85 transition-opacity"
+            className="flex flex-col items-start min-w-[150px] pr-6 border-r border-zinc-200 dark:border-zinc-800 hidden xl:flex cursor-pointer hover:opacity-85 transition-opacity select-none"
           >
-            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">
-              Delivery Location
+            <span className="text-xs font-black text-zinc-900 dark:text-white leading-none">
+              Delivery in 10 minutes
             </span>
-            <div className="flex items-center gap-1 text-xs font-bold text-zinc-900 dark:text-white">
-              <span>{userPincode ? `Postal Code: ${userPincode}` : "Select Location"}</span>
+            <div className="flex items-center gap-1 text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mt-1.5">
+              <span className="truncate max-w-[120px]">{userPincode ? `Pincode: ${userPincode}` : "Select Location"}</span>
               <span className="text-[8px]">▼</span>
             </div>
           </div>
@@ -1129,81 +1134,90 @@ export default function Home() {
       {/* Location Modal Popup Overlay */}
       {isLocationModalOpen && (
         <div className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-xl flex items-center justify-center p-6 animate-in fade-in">
-          <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-[40px] p-10 shadow-2xl border border-zinc-200 dark:border-zinc-800 text-center">
-            {locationStatus === "detecting" && (
-              <>
-                <div className="w-24 h-24 mb-8 mx-auto relative flex items-center justify-center bg-emerald-50 dark:bg-emerald-500/10 rounded-full">
-                  <span className="text-4xl animate-bounce">📍</span>
-                  <span className="absolute inset-0 rounded-full border-2 border-emerald-500/30 animate-ping"></span>
+          <div className="relative w-full max-w-[550px] bg-white dark:bg-zinc-900 rounded-[20px] p-8 shadow-2xl border border-zinc-200 dark:border-zinc-800">
+            {locationStatus !== "unserviceable" ? (
+              <div className="flex gap-6 items-start">
+                {/* Left Pin Icon (Matches Blinkit outline exactly) */}
+                <div className="w-14 h-14 bg-zinc-50 dark:bg-zinc-800 rounded-full flex items-center justify-center flex-shrink-0 text-zinc-800 dark:text-zinc-200 border border-zinc-150 dark:border-zinc-700">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="w-7 h-7">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                  </svg>
                 </div>
-                <h2 className="text-3xl font-black italic tracking-tighter uppercase mb-2 text-zinc-900 dark:text-white">
-                  Locating You...
-                </h2>
-                <p className="text-zinc-500 dark:text-zinc-400 font-medium text-sm mb-8 leading-relaxed">
-                  We are detecting your coordinates to check delivery serviceability in your area.
-                </p>
-                <button
-                  onClick={() => setLocationStatus("pending")}
-                  className="text-xs font-black text-emerald-600 hover:text-emerald-500 uppercase tracking-widest transition-colors"
-                >
-                  Enter Pincode Manually
-                </button>
-              </>
-            )}
 
-            {locationStatus === "pending" && (
-              <>
-                <div className="w-16 h-16 mb-6 mx-auto text-3xl flex items-center justify-center bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 rounded-full">
-                  🏪
-                </div>
-                <h2 className="text-3xl font-black italic tracking-tighter uppercase mb-2 text-zinc-900 dark:text-white">
-                  Delivery Pincode
-                </h2>
-                <p className="text-zinc-500 dark:text-zinc-400 font-medium text-xs mb-6">
-                  Please enter your pincode manually to verify delivery service.
-                </p>
-                <form onSubmit={handleLocationSubmit} className="flex flex-col gap-4">
-                  <input
-                    type="text"
-                    value={userPincode}
-                    onChange={(e) => setUserPincode(e.target.value)}
-                    required
-                    placeholder="Enter 6-digit Pincode"
-                    className="w-full px-6 py-4 bg-zinc-50 dark:bg-zinc-950 rounded-2xl border border-zinc-200 dark:border-zinc-800 focus:ring-4 focus:ring-emerald-500/20 outline-none font-bold text-center tracking-widest text-lg text-zinc-900 dark:text-white"
-                  />
-                  <button
-                    type="submit"
-                    className="w-full py-4 bg-emerald-600 text-white font-black rounded-2xl hover:bg-emerald-500 uppercase text-xs tracking-widest shadow-lg shadow-emerald-500/20 active:scale-95 transition-all"
-                  >
-                    Verify Delivery Area
-                  </button>
-                </form>
+                {/* Right Content */}
+                <div className="flex-1 text-left">
+                  <p className="text-[12px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
+                    Welcome to freshcart
+                  </p>
+                  <h3 className="text-[15px] font-extrabold text-zinc-850 dark:text-white mt-1 leading-snug">
+                    Please provide your delivery location to see products at nearby store
+                  </h3>
 
-                {serviceableLocations.length > 0 && (
-                  <div className="mt-8 pt-6 border-t border-zinc-100 dark:border-zinc-800">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-3">
-                      Active Serviceable Areas
-                    </p>
-                    <div className="flex flex-wrap gap-2 justify-center">
-                      {serviceableLocations.slice(0, 5).map((pin) => (
-                        <button
-                          key={pin}
-                          onClick={() => {
-                            setUserPincode(pin);
-                          }}
-                          className="px-3.5 py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 text-zinc-700 dark:text-zinc-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-bold text-xs rounded-full border border-transparent hover:border-emerald-500/20 transition-all"
-                        >
-                          📍 {pin}
-                        </button>
-                      ))}
-                    </div>
+                  {/* Button & Input block */}
+                  <div className="flex items-center gap-3 mt-6">
+                    <button
+                      onClick={triggerDetectLocation}
+                      className="bg-[#0c831f] hover:bg-[#096a18] text-white font-bold text-[12px] px-5 py-3 rounded-lg flex items-center justify-center transition-colors shadow-sm cursor-pointer whitespace-nowrap"
+                    >
+                      {locationStatus === "detecting" ? (
+                        <span className="flex items-center gap-2">
+                          <svg className="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Detecting...
+                        </span>
+                      ) : (
+                        "Detect my location"
+                      )}
+                    </button>
+
+                    {/* separator line with 'or' */}
+                    <span className="text-zinc-300 dark:text-zinc-700 text-[11px] font-bold px-1 uppercase tracking-wider flex-shrink-0">or</span>
+
+                    {/* search input */}
+                    <form onSubmit={handleLocationSubmit} className="flex-1">
+                      <input
+                        type="text"
+                        value={userPincode}
+                        onChange={(e) => setUserPincode(e.target.value)}
+                        required
+                        placeholder="search delivery location"
+                        className="w-full border border-zinc-200 dark:border-zinc-800 px-4 py-2.5 rounded-lg text-[13px] placeholder:text-zinc-400 outline-none focus:border-[#0c831f] text-zinc-900 dark:text-white dark:bg-zinc-950 font-medium tracking-tight"
+                      />
+                      <button type="submit" className="hidden"></button>
+                    </form>
                   </div>
-                )}
-              </>
-            )}
 
-            {locationStatus === "unserviceable" && (
-              <>
+                  {/* active locations list */}
+                  {serviceableLocations.length > 0 && (
+                    <div className="mt-8 pt-5 border-t border-zinc-100 dark:border-zinc-850">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-3">
+                        Active Serviceable Areas
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {serviceableLocations.slice(0, 5).map((pin) => (
+                          <button
+                            key={pin}
+                            onClick={() => {
+                              setUserPincode(pin);
+                              localStorage.setItem("userPincode", pin);
+                              setLocationStatus("serviceable");
+                              setIsLocationModalOpen(false);
+                            }}
+                            className="px-3 py-1.5 bg-zinc-50 dark:bg-zinc-800 hover:bg-[#0c831f]/10 text-zinc-650 dark:text-zinc-350 hover:text-[#0c831f] dark:hover:text-emerald-400 font-bold text-xs rounded-full border border-transparent hover:border-[#0c831f]/20 transition-all cursor-pointer"
+                          >
+                            📍 {pin}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center p-4">
                 <div className="w-24 h-24 mb-6 mx-auto text-5xl flex items-center justify-center bg-orange-100 dark:bg-orange-500/10 text-orange-500 rounded-full animate-bounce">
                   📍
                 </div>
@@ -1222,7 +1236,7 @@ export default function Home() {
                 >
                   Try Another Pincode
                 </button>
-              </>
+              </div>
             )}
           </div>
         </div>
